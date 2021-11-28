@@ -9,23 +9,11 @@ import (
 )
 
 func main() {
-	var c Countries
-	resp, err := http.Get(buildLink())
-	if err != nil {
-		panic(err)
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	err = json.Unmarshal(body, &c)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(c.Countries[2])
+	// Get and parse data:
+	//	link := buildLink()
+	//	data := getData(link)
+	//	c := parseData(data)
+	//	fmt.Println(c.Countries)
 }
 
 type Countries struct {
@@ -37,4 +25,27 @@ func buildLink() string {
 	var link string = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
 	tTime := time.Now()
 	return fmt.Sprintf("%s/%s-01-01/%s", link, tTime.Format("2006"), tTime.Format("2006-01-02"))
+}
+
+func getData(s string) []byte {
+	resp, err := http.Get(s)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	return body
+}
+
+func parseData(body []byte) Countries {
+	var c Countries
+	err := json.Unmarshal(body, &c)
+	if err != nil {
+		panic(err)
+	}
+	return c
 }
