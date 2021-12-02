@@ -18,6 +18,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
+	mux.HandleFunc("/second", second)
+	mux.HandleFunc("/second/third", third)
 
 	log.Println("Start web-server on http://localhost:4000")
 	err := http.ListenAndServe(":4000", mux)
@@ -25,7 +27,19 @@ func main() {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
 	w.Write([]byte("Hello World"))
+}
+
+func second(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("It's second handler"))
+}
+
+func third(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("It's third handler"))
 }
 
 type Countries struct {
