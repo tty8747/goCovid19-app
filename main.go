@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -14,6 +15,17 @@ func main() {
 	//	data := getData(link)
 	//	c := parseData(data)
 	//	fmt.Println(c.Countries)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", home)
+
+	log.Println("Start web-server on http://localhost:4000")
+	err := http.ListenAndServe(":4000", mux)
+	log.Fatal(err)
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Hello World"))
 }
 
 type Countries struct {
