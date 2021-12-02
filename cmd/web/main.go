@@ -26,28 +26,6 @@ func main() {
 	log.Fatal(err)
 }
 
-func home(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", http.MethodGet)
-		w.WriteHeader(405)
-		w.Write([]byte("405 Method Not Allowed"))
-		return
-	}
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-	w.Write([]byte("Hello World"))
-}
-
-func second(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("It's second handler"))
-}
-
-func third(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("It's third handler"))
-}
-
 type Countries struct {
 	// curl "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range/2021-11-01/2021-11-12" | jq '.countries[]'
 	Countries []string `json:"countries"`
