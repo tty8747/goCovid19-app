@@ -29,7 +29,7 @@ func main() {
 func home(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(405)
-		w.Write([]byte("Allowed method GET only!"))
+		w.Write([]byte("405 Method Not Allowed"))
 		return
 	}
 	if r.URL.Path != "/" {
