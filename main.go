@@ -27,6 +27,11 @@ func main() {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(405)
+		w.Write([]byte("Allowed method GET only!"))
+		return
+	}
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
