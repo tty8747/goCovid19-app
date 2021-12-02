@@ -21,8 +21,8 @@ func main() {
 	mux.HandleFunc("/second", second)
 	mux.HandleFunc("/second/third", third)
 
-	log.Println("Start web-server on http://localhost:4000")
-	err := http.ListenAndServe(":4000", mux)
+	log.Println("Start web-server on *:4000")
+	err := http.ListenAndServe("localhost:4000", mux)
 	log.Fatal(err)
 }
 
