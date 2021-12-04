@@ -1,0 +1,19 @@
+{{ define "base" }}
+<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <title>{{ template "title" . }} - Covid19</title>
+    </head>
+    <body>
+        {{ template "header" }}
+        {{ block "sidebar" . }}
+          <p>sidebar</p>
+        {{ end }}
+        <main>
+            {{ template "main" . }}
+        </main>
+        {{ template "footer" }}
+    </body>
+</html>
+{{end}}
