@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,14 +17,17 @@ func main() {
 	//	c := parseData(data)
 	//	fmt.Println(c.Countries)
 
+	addr := flag.String("addr", "localhost:4000", "HTTP address")
+	flag.Parse()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	log.Println("Start web-server on *:4000")
-	err := http.ListenAndServe("localhost:4000", mux)
+	log.Printf("Start web-server on %s", *addr)
+	err := http.ListenAndServe(*addr, mux)
 	log.Fatal(err)
 }
 
