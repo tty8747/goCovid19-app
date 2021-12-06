@@ -1,8 +1,90 @@
 {{template "base" .}}
 
-{{define "title"}}Home page{{end}}
+{{define "title"}}Covid-19{{end}}
 
 {{define "main"}}
-<h2>list of countries</h2>
-<p>data data data data data data data </p>
+      <div class="container">
+        <form action="query" method="post">
+          <div class="row">
+            <div class="col-md-4">
+              <label for="dateFrom" class="form-label">Date from:</label>
+              <input type="date" name="dateFrom" id="dateFrom" class="form-control">          
+            </div>
+            <div class="col-md-4">
+              <label for="dateTo" class="form-label">Date to:</label>
+              <input type="date" name="dateTo" id="dateTo" class="form-control">          
+            </div>      
+          </div>
+          <br />
+          <div class="row">
+            <div class="col-md-4">
+              <label for="countrySelect" class="form-label">Country:</label>
+              <select class="form-select" id="countrySelect" aria-label="A choose of countrues">
+                <option selected>Choose a country</option>
+                <option value="RUS">Russia</option>
+                <option value="IRL">Ireland</option>
+                <option value="GER">Germany</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Order by:
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDate">
+                  <label class="form-check-label" for="flexRadioDate">
+                    date
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDeaths" checked>
+                  <label class="form-check-label" for="flexRadioDeaths">
+                    deaths
+                  </label>
+                </div>
+              </label>
+            </div>
+          </div>      
+          <div class="row">
+            <div class="col-md-3">
+              <button type="button" class="w-50 btn btn-primary">Apply</button>
+            </div>
+          </div>
+        </form>
+        <br />
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>data_value</th>
+              <th>confirmed</th>
+              <th>deaths</th>
+              <th>stringency_actual</th>
+              <th>stringency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>01.01.2021</td>
+              <td>10</td>
+              <td>11</td>
+              <td>5</td>
+              <td>6</td>
+            </tr>
+            <tr>
+              <td>02.01.2021</td>
+              <td>4</td>
+              <td>3</td>
+              <td>11</td>
+              <td>8</td>
+            </tr>
+            <tr>
+              <td>03.01.2021</td>
+              <td>7</td>
+              <td>9</td>
+              <td>7</td>
+              <td>9</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
 {{end}}

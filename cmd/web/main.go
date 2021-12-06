@@ -18,8 +18,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
-	mux.HandleFunc("/second", second)
-	mux.HandleFunc("/second/third", third)
+
+	fileServer := http.FileServer(http.Dir("./ui/static"))
+	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	log.Println("Start web-server on *:4000")
 	err := http.ListenAndServe("localhost:4000", mux)
