@@ -1,5 +1,11 @@
 {{ define "footer" }}
-  <footer>
-    <p>The site was created on <strong>Golang</strong>.</p>
-  </footer>
+    <div class="container">
+      <footer class="blog-footer d-flex flex-wrap justify-content-center py-3 mb-4 row">
+        <p class="col-xs-12 col-sm-6 col-lg-8">The site was created on <a href="https://go.dev/">Golang</a>.</p>  
+        <form class="needs-validation col-sm-6 col-lg-4" novalidate>
+          <button class="w-50 btn btn-primary" type="submit">Update data</button>
+        </form>
+      </footer>
+    </div>
+    <script src="./static/js/bootstrap.bundle.min.js"></script>
 {{ end }}
