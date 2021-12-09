@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -17,18 +18,36 @@ func main() {
 	//	c := parseData(data)
 	//	fmt.Println(c.Countries)
 
+	f := form{}
+
 	addr := flag.String("addr", "localhost:4000", "HTTP address")
 	flag.Parse()
 
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
+	mux.HandleFunc("/query", f.query)
 
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	log.Printf("Start web-server on %s", *addr)
-	err := http.ListenAndServe(*addr, mux)
-	log.Fatal(err)
+	srv := &http.Server{
+		Addr:     *addr,
+		ErrorLog: errLog,
+		Handler:  mux,
+	}
+
+	infoLog.Printf("Start web-server on %s", *addr)
+	err := srv.ListenAndServe()
+	errLog.Fatal(err)
+}
+
+type form struct {
+	dateFrom, dateTo string
+	radioDD          string
+	countrySel       string
 }
 
 type Countries struct {

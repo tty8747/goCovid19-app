@@ -41,10 +41,10 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func second(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Used method %s", r.Method)
-}
-
-func third(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("It's third handler"))
+func (f *form) query(w http.ResponseWriter, r *http.Request) {
+	f.dateFrom = r.FormValue("dateFrom")
+	f.dateTo = r.FormValue("dateTo")
+	f.radioDD = r.FormValue("radioDD")
+	f.countrySel = r.FormValue("countrySel")
+	fmt.Fprintf(w, "Used method %s\nDate from: %s\nDate to: %s\nCountry:%s\nSort by %s", r.Method, f.dateFrom, f.dateTo, f.countrySel, f.radioDD)
 }

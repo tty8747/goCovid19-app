@@ -4,7 +4,7 @@
 
 {{define "main"}}
       <div class="container">
-        <form action="query" method="post">
+        <form action="/query" method="POST">
           <div class="row">
             <div class="col-md-4">
               <label for="dateFrom" class="form-label">Date from:</label>
@@ -19,7 +19,7 @@
           <div class="row">
             <div class="col-md-4">
               <label for="countrySelect" class="form-label">Country:</label>
-              <select class="form-select" id="countrySelect" aria-label="A choose of countrues">
+              <select class="form-select" name="countrySel" id="countrySelect" aria-label="A choose of countrues">
                 <option selected>Choose a country</option>
                 <option value="RUS">Russia</option>
                 <option value="IRL">Ireland</option>
@@ -29,14 +29,14 @@
             <div class="col-md-4">
               <label class="form-label">Order by:
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDate">
-                  <label class="form-check-label" for="flexRadioDate">
+                  <input class="form-check-input" type="radio" name="radioDD" value="date" id="radioDate">
+                  <label class="form-check-label" for="radioDate">
                     date
                   </label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDeaths" checked>
-                  <label class="form-check-label" for="flexRadioDeaths">
+                  <input class="form-check-input" type="radio" name="radioDD" value="deaths" id="radioDeaths" checked>
+                  <label class="form-check-label" for="radioDeaths">
                     deaths
                   </label>
                 </div>
@@ -45,7 +45,7 @@
           </div>      
           <div class="row">
             <div class="col-md-3">
-              <button type="button" class="w-50 btn btn-primary">Apply</button>
+              <button type="submit" class="w-50 btn btn-primary">Apply</button>
             </div>
           </div>
         </form>
