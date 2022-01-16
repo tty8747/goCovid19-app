@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Allow", http.MethodGet)
 		w.WriteHeader(405)
@@ -15,7 +14,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		app.notFound(w)
 		return
 	}
 
@@ -28,23 +27,28 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
+		app.errLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
+		app.serverErr(w, err)
 		return
 	}
 
 	err = ts.Execute(w, nil)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.errLog.Println(err.Error())
+		app.serverErr(w, err)
 	}
 
 }
 
-func (f *form) query(w http.ResponseWriter, r *http.Request) {
-	f.dateFrom = r.FormValue("dateFrom")
-	f.dateTo = r.FormValue("dateTo")
-	f.radioDD = r.FormValue("radioDD")
-	f.countrySel = r.FormValue("countrySel")
-	fmt.Fprintf(w, "Used method %s\nDate from: %s\nDate to: %s\nCountry:%s\nSort by %s", r.Method, f.dateFrom, f.dateTo, f.countrySel, f.radioDD)
+func (app *application) query(w http.ResponseWriter, r *http.Request) {
+	app.dateFrom = r.FormValue("dateFrom")
+	app.dateTo = r.FormValue("dateTo")
+	app.radioDD = r.FormValue("radioDD")
+	app.countrySel = r.FormValue("countrySel")
+	fmt.Fprintf(w, "Used method %s\nDate from: %s\nDate to: %s\nCountry:%s\nSort by %s", r.Method, app.dateFrom, app.dateTo, app.countrySel, app.radioDD)
+	// some query, err
+	// if err != nil {
+	// 	app.notFound(w)
+	// }
 }

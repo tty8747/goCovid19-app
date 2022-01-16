@@ -18,7 +18,7 @@ func main() {
 	//	c := parseData(data)
 	//	fmt.Println(c.Countries)
 
-	f := form{}
+	app := &application{}
 
 	addr := flag.String("addr", "localhost:4000", "HTTP address")
 	flag.Parse()
@@ -27,8 +27,8 @@ func main() {
 	errLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/query", f.query)
+	mux.HandleFunc("/", app.home)
+	mux.HandleFunc("/query", app.query)
 
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
@@ -44,7 +44,9 @@ func main() {
 	errLog.Fatal(err)
 }
 
-type form struct {
+type application struct {
+	errLog           *log.Logger
+	infoLog          *log.Logger
 	dateFrom, dateTo string
 	radioDD          string
 	countrySel       string
