@@ -31,6 +31,7 @@ func main() {
 	infoLog.Printf("Get dates from start of year\n%s", listOfDates)
 	infoLog.Printf("Create the request link\n%s", app.makeLink(listOfDates[0], listOfDates[len(listOfDates)-1]))
 	infoLog.Printf("Get list of countries\n%s", app.cList)
+	infoLog.Printf("Get test object\n%s", app.op(listOfDates[0], app.cList[0], rawData))
 
 	err := srv.ListenAndServe()
 	errLog.Fatal(err)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/savaki/jq"
 	_ "github.com/savaki/jq"
 )
 
@@ -65,6 +66,7 @@ func (app *application) getData(s string) []byte {
 	return body
 }
 
+// Gets list of countries
 func (app *application) getListOfCoutries(body []byte) []string {
 	var bs BodyStruct
 	err := json.Unmarshal(body, &bs)
@@ -73,3 +75,18 @@ func (app *application) getListOfCoutries(body []byte) []string {
 	}
 	return []string(bs.Countries)
 }
+
+// Remove unnecessary from json (jq)
+func (app *application) op(dateId, countryId string, body []byte) string {
+	op, err := jq.Parse(fmt.Sprintf(".data.%s.%s", dateId, countryId))
+	if err != nil {
+		panic(err)
+	}
+	value, err := op.Apply(body)
+	if err != nil {
+		panic(err)
+	}
+	return string(value)
+}
+
+// get country obj
