@@ -22,16 +22,21 @@ func main() {
 		Handler:  app.routes(),
 	}
 
+	listOfDates := app.genListOfDates()
+
 	infoLog.Printf("Start web-server on %s", *addr)
+	infoLog.Printf("Get dates from start of year\n%s", listOfDates)
+	infoLog.Printf("Create the request link\n%s", app.makeLink(listOfDates[0], listOfDates[len(listOfDates)-1]))
+
 	err := srv.ListenAndServe()
 	errLog.Fatal(err)
-
 }
 
 type application struct {
-	errLog    *log.Logger
-	infoLog   *log.Logger
-	jresponse []countries
+	errLog      *log.Logger
+	infoLog     *log.Logger
+	jresponse   []countries
+	listOfDates []string
 }
 
 type countries struct {
