@@ -46,6 +46,7 @@ func (app *application) genListOfDates() (listOfDates []string) {
 	return listOfDates
 }
 
+// Makes the link
 func (app *application) makeLink(start, end string) string {
 	var link string = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
 	return fmt.Sprintf("%s/%s/%s", link, start, end)
@@ -82,8 +83,8 @@ func (app *application) op(dateId, countryId string, body []byte) string {
 	if err != nil {
 		panic(err)
 	}
-	value, err := op.Apply(body)
-	if err != nil {
+	value, err2 := op.Apply(body)
+	if err2 != nil {
 		return string("null")
 	}
 	//	var keyNotFound = errors.New("key not found")
@@ -101,8 +102,9 @@ func (app *application) op(dateId, countryId string, body []byte) string {
 }
 
 // get country obj
-func (app *application) collectData(b []byte, obj Obj) {
+func (app *application) collectData(b []byte) (obj Obj) {
 	if err := json.Unmarshal(b, &obj); err != nil {
 		panic(err)
 	}
+	return obj
 }

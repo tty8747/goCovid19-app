@@ -39,8 +39,13 @@ func main() {
 	for _, date := range app.listOfDates {
 		for _, country := range app.cList {
 			infoLog.Printf("Get %s object for %s: \n%s", country, date, app.op(date, country, rawData))
-			// app.listObj = append(app.listObj, app.collectData(app.op(date, country, rawData), Obj))
+			app.listObj = append(app.listObj, app.collectData([]byte(app.op(date, country, rawData))))
 		}
+	}
+
+	infoLog.Printf("=========================")
+	for _, elem := range app.listObj {
+		infoLog.Printf("Deaths: %v", elem.Deaths)
 	}
 
 	err := srv.ListenAndServe()
