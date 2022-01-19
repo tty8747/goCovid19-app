@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"time"
 
 	_ "github.com/savaki/jq"
@@ -45,4 +48,28 @@ func (app *application) genListOfDates() (listOfDates []string) {
 func (app *application) makeLink(start, end string) string {
 	var link string = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
 	return fmt.Sprintf("%s/%s/%s", link, start, end)
+}
+
+// Gets raw data
+func (app *application) getData(s string) []byte {
+	response, err := http.Get(s)
+	if err != nil {
+		panic(err)
+	}
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	return body
+}
+
+func (app *application) getListOfCoutries(body []byte) []string {
+	var bs BodyStruct
+	err := json.Unmarshal(body, &bs)
+	if err != nil {
+		panic(err)
+	}
+	return []string(bs.Countries)
 }

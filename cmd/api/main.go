@@ -23,10 +23,14 @@ func main() {
 	}
 
 	listOfDates := app.genListOfDates()
+	link := app.makeLink(listOfDates[0], listOfDates[len(listOfDates)-1])
+	rawData := app.getData(link)
+	app.cList = app.getListOfCoutries(rawData)
 
 	infoLog.Printf("Start web-server on %s", *addr)
 	infoLog.Printf("Get dates from start of year\n%s", listOfDates)
 	infoLog.Printf("Create the request link\n%s", app.makeLink(listOfDates[0], listOfDates[len(listOfDates)-1]))
+	infoLog.Printf("Get list of countries\n%s", app.cList)
 
 	err := srv.ListenAndServe()
 	errLog.Fatal(err)
@@ -35,11 +39,10 @@ func main() {
 type application struct {
 	errLog      *log.Logger
 	infoLog     *log.Logger
-	jresponse   []countries
 	listOfDates []string
+	cList       []string // country list
 }
 
-type countries struct {
-	// curl "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range/2021-11-01/2021-11-12" | jq '.countries[]'
+type BodyStruct struct {
 	Countries []string `json:"countries"`
 }
