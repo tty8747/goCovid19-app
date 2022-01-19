@@ -37,7 +37,7 @@ func (app *application) response(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) request() []string {
 	// Get and parse data:
-	link := makeLink()
+	link := makeLinkOld()
 	data := getData(link)
 	c := parseData(data)
 	fmt.Println(c.Countries)
@@ -49,7 +49,7 @@ type Countries struct {
 	Countries []string `json:"countries"`
 }
 
-func makeLink() string {
+func makeLinkOld() string {
 	var link string = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
 	tTime := time.Now()
 	return fmt.Sprintf("%s/%s-01-01/%s", link, tTime.Format("2006"), tTime.Format("2006-01-02"))
