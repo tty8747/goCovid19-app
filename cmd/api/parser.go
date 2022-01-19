@@ -84,9 +84,25 @@ func (app *application) op(dateId, countryId string, body []byte) string {
 	}
 	value, err := op.Apply(body)
 	if err != nil {
-		panic(err)
+		return string("null")
 	}
+	//	var keyNotFound = errors.New("key not found")
+	//	if err.Error() == keyNotFound.Error() {
+	//		// return string("null")
+	//		fmt.Println("---")
+	//		fmt.Println(err)
+	//		fmt.Println(keyNotFound)
+	//		fmt.Println("---")
+	//		return string("this")
+	//	} else if err != nil {
+	//		panic(err)
+	//	}
 	return string(value)
 }
 
 // get country obj
+func (app *application) collectData(b []byte, obj Obj) {
+	if err := json.Unmarshal(b, &obj); err != nil {
+		panic(err)
+	}
+}
