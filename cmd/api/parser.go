@@ -129,7 +129,12 @@ func (app *application) parser() {
 	// put data to struct
 	for _, date := range app.listOfDates {
 		for _, country := range app.cList {
-			app.listObj = append(app.listObj, collectData([]byte(op(date, country, rawData))))
+			// skip null objects
+			a := op(date, country, rawData)
+			if a == "null" {
+				continue
+			}
+			app.listObj = append(app.listObj, collectData([]byte(a)))
 		}
 	}
 }
