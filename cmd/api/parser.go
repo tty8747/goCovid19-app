@@ -29,7 +29,7 @@ func rangeDate(start, end time.Time) func() time.Time {
 }
 
 // Gets list of dates
-func (app *application) genListOfDates() (listOfDates []string) {
+func genListOfDates() (listOfDates []string) {
 	end := time.Now()
 	start, err := time.ParseInLocation("2006-01-02", fmt.Sprintf("%s-%s-%s", end.Format("2006"), "01", "01"), time.Local)
 	if err != nil {
@@ -47,13 +47,13 @@ func (app *application) genListOfDates() (listOfDates []string) {
 }
 
 // Makes the link
-func (app *application) makeLink(start, end string) string {
+func makeLink(start, end string) string {
 	var link string = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
 	return fmt.Sprintf("%s/%s/%s", link, start, end)
 }
 
 // Gets raw data
-func (app *application) getData(s string) []byte {
+func getData(s string) []byte {
 	response, err := http.Get(s)
 	if err != nil {
 		panic(err)
@@ -68,17 +68,20 @@ func (app *application) getData(s string) []byte {
 }
 
 // Gets list of countries
-func (app *application) getListOfCoutries(body []byte) []string {
-	var bs BodyStruct
-	err := json.Unmarshal(body, &bs)
+func getListOfCoutries(body []byte) []string {
+	type countries struct {
+		Countries []string `json:"countries"`
+	}
+	var c countries
+	err := json.Unmarshal(body, &c)
 	if err != nil {
 		panic(err)
 	}
-	return []string(bs.Countries)
+	return []string(c.Countries)
 }
 
 // Remove unnecessary from json (jq)
-func (app *application) op(dateId, countryId string, body []byte) string {
+func op(dateId, countryId string, body []byte) string {
 	op, err := jq.Parse(fmt.Sprintf(".data.%s.%s", dateId, countryId))
 	if err != nil {
 		panic(err)
@@ -102,9 +105,31 @@ func (app *application) op(dateId, countryId string, body []byte) string {
 }
 
 // get country obj
-func (app *application) collectData(b []byte) (obj Obj) {
+func collectData(b []byte) (obj Obj) {
 	if err := json.Unmarshal(b, &obj); err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+func (app *application) parser() {
+
+	// generates a list of dates
+	app.listOfDates = genListOfDates()
+
+	// makes a link
+	link := makeLink(app.listOfDates[0], app.listOfDates[len(app.listOfDates)-1])
+
+	// receives data
+	rawData := getData(link)
+
+	// receive countries
+	app.cList = getListOfCoutries(rawData)
+
+	// put data to struct
+	for _, date := range app.listOfDates {
+		for _, country := range app.cList {
+			app.listObj = append(app.listObj, collectData([]byte(op(date, country, rawData))))
+		}
+	}
 }

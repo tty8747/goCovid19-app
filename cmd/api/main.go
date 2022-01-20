@@ -24,29 +24,15 @@ func main() {
 
 	infoLog.Printf("Start web-server on %s", *addr)
 
-	app.listOfDates = app.genListOfDates()
-	infoLog.Printf("Get dates from start of year\n%s", app.listOfDates)
-
-	link := app.makeLink(app.listOfDates[0], app.listOfDates[len(app.listOfDates)-1])
-	infoLog.Printf("Create the request link\n%s", link)
-
-	rawData := app.getData(link)
-	app.cList = app.getListOfCoutries(rawData)
-	infoLog.Printf("Get list of countries\n%s", app.cList)
-
-	infoLog.Printf("Get test object\n%s", app.op(app.listOfDates[0], app.cList[0], rawData))
-
-	for _, date := range app.listOfDates {
-		for _, country := range app.cList {
-			infoLog.Printf("Get %s object for %s: \n%s", country, date, app.op(date, country, rawData))
-			app.listObj = append(app.listObj, app.collectData([]byte(app.op(date, country, rawData))))
-		}
-	}
-
+	app.parser()
 	infoLog.Printf("=========================")
 	for _, elem := range app.listObj {
 		infoLog.Printf("Deaths: %v", elem.Deaths)
 	}
+
+	infoLog.Printf("List of countries: %s", app.cList)
+
+	infoLog.Printf("List of dates: %s", app.listOfDates)
 
 	err := srv.ListenAndServe()
 	errLog.Fatal(err)
@@ -58,10 +44,6 @@ type application struct {
 	listOfDates []string
 	cList       []string // country list
 	listObj     []Obj
-}
-
-type BodyStruct struct {
-	Countries []string `json:"countries"`
 }
 
 // Makes struct for selected object
