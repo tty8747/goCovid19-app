@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/savaki/jq"
-	_ "github.com/savaki/jq"
 )
 
 // Gets list of dates
