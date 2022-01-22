@@ -1,34 +1,34 @@
 include .env
 
-all_api: build_api run_api 
-all_web: build_web run_web 
+.DEFAULT_GOAL := all
 
-init:
-	go mod init
+# the same that .DEFAULT_GOAL for older version of make (<= 3.80)
+# .PHONY: default
+# default: clean;
 
-get:
-	go get -u ./cmd/api
+.PHONY: all
+all: build run
 
-build_api:
+.PHONY: build
+build:
+	$(info -> build:)
 	go mod tidy
 	mkdir -p ./bin
-	GOARCH=amd64 GOOS=linux go build -o ./bin/${BINARY_API_NAME}-linux ./cmd/api
+	GOARCH=amd64 GOOS=linux go build -o ./bin/${BINARY_NAME}-linux ${PATH_TO_SOURCE}
 
-build_web:
-	go mod tidy
-	mkdir -p ./bin
-	GOARCH=amd64 GOOS=linux go build -o ./bin/${BINARY_WEB_NAME}-linux ./cmd/web
+.PHONY: run
+run:
+	$(info -> run:)
+	./bin/${BINARY_NAME}-linux
 
-run_api:
-	./bin/${BINARY_API_NAME}-linux
-
-run_web:
-	./bin/${BINARY_WEB_NAME}-linux
-
-clean_api:
+.PHONY: clean
+clean:
+	$(info -> clean:)
 	go clean
-	rm ./bin/${BINARY_API_NAME}-linux
+	rm ./bin/${BINARY_NAME}-linux
 
-clean_web:
-	go clean
-	rm ./bin/${BINARY_WEB_NAME}-linux
+.PHONY: messages
+messages:
+	$(info test info message)
+	$(warning test warning message)
+	$(error test error message)
