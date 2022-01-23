@@ -22,7 +22,7 @@ func main() {
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Start web-server on %s", *addr)
+	infoLog.Printf("Start api-server on %s", *addr)
 
 	app.parser()
 	infoLog.Printf("=========================")
