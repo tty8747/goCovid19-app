@@ -16,6 +16,7 @@ services:
       timeout: 3s
       retries: 3
       start_period: 1s
+# connect from localhost: mysql --protocol=tcp $MARIADB_DATABASE -u$MARIADB_USER -p$MARIADB_PASSWORD
 
 
   goose:
