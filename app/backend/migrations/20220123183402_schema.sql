@@ -24,6 +24,6 @@ ALTER TABLE `cases` ADD FOREIGN KEY (`country_id`) REFERENCES `countries` (`id`)
 ALTER TABLE `cases` ADD FOREIGN KEY (`date_id`) REFERENCES `dates` (`id`);
 
 -- +goose Down
-DROP TABLE countries;
 DROP TABLE cases;
 DROP TABLE dates;
+DROP TABLE countries;
