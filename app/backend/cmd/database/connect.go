@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -31,10 +32,10 @@ func connect(settings Settings) (db *sql.DB, err error) {
 func Migrate(path string, s Settings) error {
 
 	db, err := connect(s)
-	defer db.Close()
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 
 	if err := goose.SetDialect("mysql"); err != nil {
 		return err
@@ -50,4 +51,39 @@ func Migrate(path string, s Settings) error {
 		return err
 	}
 	return nil
+}
+
+func AddData(query string, s Settings) error {
+
+	db, err := connect(s)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReturnId(query string, s Settings) (id int, err error) {
+
+	db, err := connect(s)
+	if err != nil {
+		return -1, err
+	}
+	defer db.Close()
+
+	row := db.QueryRow(query)
+	err = row.Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return -2, errors.New("Zero rows found")
+		} else {
+			return -3, err
+		}
+	}
+	return id, nil
 }

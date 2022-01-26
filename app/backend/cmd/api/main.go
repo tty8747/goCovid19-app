@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -26,22 +27,6 @@ func main() {
 
 	infoLog.Printf("Start api-server on %s", *addr)
 
-	//	app.parser()
-	//	infoLog.Printf("=========================")
-	//	for _, elem := range app.listObj {
-	//		infoLog.Printf("Deaths: %v", elem.Deaths)
-	//	}
-	//
-	//	infoLog.Printf("List of countries: %s", app.cList)
-	//
-	//	infoLog.Printf("List of dates: %s", app.listOfDates)
-
-	// app.reader("migration/20220123183402_schema.sql")
-
-	//	if err := app.migrate(); err != nil {
-	//		errLog.Fatal(err)
-	//	}
-
 	// Database
 	dbSettings := database.Settings{
 		User:  "covid19",
@@ -52,8 +37,52 @@ func main() {
 		Reset: true,
 	}
 
+	// Migrations
 	if err := database.Migrate("migrations", dbSettings); err != nil {
 		errLog.Fatal(err)
+	}
+
+	// Get data
+	app.parser()
+
+	// Insert countries into sql table countries
+	for _, elem := range app.cList {
+		query := fmt.Sprintf("INSERT INTO `countries`(`code`) VALUES ('%s');", elem)
+		infoLog.Println(query)
+		if err := database.AddData(query, dbSettings); err != nil {
+			errLog.Fatal(err)
+		}
+	}
+
+	// Insert dates into sql table dates
+	for _, elem := range app.listOfDates {
+		query := fmt.Sprintf("INSERT INTO `dates`(`date_value`) VALUES ('%s');", elem)
+		infoLog.Println(query)
+		if err := database.AddData(query, dbSettings); err != nil {
+			errLog.Fatal(err)
+		}
+	}
+
+	// Insert cases into sql table cases
+	infoLog.Println("===")
+	for _, elem := range app.listObj {
+		queryCountries := fmt.Sprintf("select id from countries where code='%s';", elem.CountryCode)
+		queryDates := fmt.Sprintf("select id from dates where date_value='%s';", elem.DateValue)
+
+		countryId, err := database.ReturnId(queryCountries, dbSettings)
+		if err != nil {
+			errLog.Println(err)
+		}
+		dateId, err := database.ReturnId(queryDates, dbSettings)
+		if err != nil {
+			errLog.Println(err)
+		}
+		query := fmt.Sprintf("INSERT INTO `cases`(`country_id`,`date_id`,`confirmed`,`deaths`,`stringency_actual`,`stringency`) VALUES ('%d','%d',%d,%d,%f,%f);", countryId, dateId, elem.Confirmed, elem.Deaths, elem.StringencyActual, elem.Stringency)
+
+		infoLog.Println(query)
+		if err := database.AddData(query, dbSettings); err != nil {
+			errLog.Fatal(err)
+		}
 	}
 
 	err := srv.ListenAndServe()
