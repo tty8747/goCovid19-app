@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"dodcaf.com/covid19/cmd/database"
+	"github.com/tty8747/goCovid19/cmd/database"
 )
 
 func main() {
