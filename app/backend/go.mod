@@ -1,6 +1,6 @@
 module dodcaf.com/covid19
 
-go 1.16
+go 1.17
 
 require (
 	github.com/pressly/goose v2.7.0+incompatible

@@ -18,14 +18,25 @@ services:
       start_period: 1s
 # connect from localhost: mysql --protocol=tcp $MARIADB_DATABASE -u$MARIADB_USER -p$MARIADB_PASSWORD
 
-
   goose:
     depends_on:
       db:
         condition: service_healthy
-
-    build: app/backend
+    build: app/backend/migrations
+    links:
+      - db:mysql
     environment:
       - GOOSE_DRIVER=mysql
-      - GOOSE_DBSTRING=$MARIADB_USER:$MARIADB_PASSWORD@tcp(db:3306)/$MARIADB_DATABASE
+      - GOOSE_DBSTRING=$MARIADB_USER:$MARIADB_PASSWORD@tcp(mysql:3306)/$MARIADB_DATABASE
     command: ["goose", "up"]
+
+  app:
+    depends_on:
+      db:
+        condition: service_healthy
+    build: app/backend
+    ports:
+      - 8080:5000
+    links:
+      - db:mysql
+    command: ["/app/api"]

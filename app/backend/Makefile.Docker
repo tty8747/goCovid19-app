@@ -1,6 +1,3 @@
-# without docker build:
-include .env
-
 .DEFAULT_GOAL := all
 
 # the same that .DEFAULT_GOAL for older version of make (<= 3.80)

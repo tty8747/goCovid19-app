@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,8 +11,18 @@ import (
 
 func main() {
 	app := &application{}
+	//	app.settings.migrationDir = "migrations"
+	app.settings.migrationDir = "/app/migrations"
+	app.settings.endPoint = "0.0.0.0:5000"
+	//	app.dbSettings.Host = "localhost"
+	app.dbSettings.Host = "db"
+	app.dbSettings.Name = "covid19"
+	app.dbSettings.Port = "3306"
+	app.dbSettings.User = "covid19"
+	app.dbSettings.Pass = "Johtae5j"
+	app.dbSettings.Reset = true
 
-	addr := flag.String("addr", "localhost:5000", "API HTTP address")
+	addr := flag.String("addr", app.settings.endPoint, "API HTTP address")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -26,65 +35,6 @@ func main() {
 	}
 
 	infoLog.Printf("Start api-server on %s", *addr)
-
-	// Database
-	dbSettings := database.Settings{
-		User:  "covid19",
-		Pass:  "Johtae5j",
-		Host:  "localhost",
-		Port:  "3306",
-		Name:  "covid19",
-		Reset: true,
-	}
-
-	// Migrations
-	if err := database.Migrate("migrations", dbSettings); err != nil {
-		errLog.Fatal(err)
-	}
-
-	// Get data
-	app.parser()
-
-	// Insert countries into sql table countries
-	for _, elem := range app.cList {
-		query := fmt.Sprintf("INSERT INTO `countries`(`code`) VALUES ('%s');", elem)
-		infoLog.Println(query)
-		if err := database.AddData(query, dbSettings); err != nil {
-			errLog.Fatal(err)
-		}
-	}
-
-	// Insert dates into sql table dates
-	for _, elem := range app.listOfDates {
-		query := fmt.Sprintf("INSERT INTO `dates`(`date_value`) VALUES ('%s');", elem)
-		infoLog.Println(query)
-		if err := database.AddData(query, dbSettings); err != nil {
-			errLog.Fatal(err)
-		}
-	}
-
-	// Insert cases into sql table cases
-	infoLog.Println("===")
-	for _, elem := range app.listObj {
-		queryCountries := fmt.Sprintf("select id from countries where code='%s';", elem.CountryCode)
-		queryDates := fmt.Sprintf("select id from dates where date_value='%s';", elem.DateValue)
-
-		countryId, err := database.ReturnId(queryCountries, dbSettings)
-		if err != nil {
-			errLog.Println(err)
-		}
-		dateId, err := database.ReturnId(queryDates, dbSettings)
-		if err != nil {
-			errLog.Println(err)
-		}
-		query := fmt.Sprintf("INSERT INTO `cases`(`country_id`,`date_id`,`confirmed`,`deaths`,`stringency_actual`,`stringency`) VALUES ('%d','%d',%d,%d,%f,%f);", countryId, dateId, elem.Confirmed, elem.Deaths, elem.StringencyActual, elem.Stringency)
-
-		infoLog.Println(query)
-		if err := database.AddData(query, dbSettings); err != nil {
-			errLog.Fatal(err)
-		}
-	}
-
 	err := srv.ListenAndServe()
 	errLog.Fatal(err)
 }
@@ -95,6 +45,8 @@ type application struct {
 	listOfDates []string
 	cList       []string // country list
 	listObj     []Obj
+	settings    appSettings
+	dbSettings  database.Settings
 }
 
 // Makes struct for selected object
@@ -107,4 +59,9 @@ type Obj struct {
 	Stringency            float64 `json:"stringency"`
 	StringencyLegacy      float64 `json:"stringency_legacy"`
 	StringencyLegacy_disp float64 `json:"stringency_legacy_disp"`
+}
+
+type appSettings struct {
+	migrationDir string
+	endPoint     string
 }
