@@ -18,6 +18,14 @@ type Settings struct {
 	Reset bool
 }
 
+type GenTable struct {
+	Data_value        string  `json:"data_value"`
+	Confirmed         int     `json:"confirmed"`
+	Deaths            int     `json:"deaths"`
+	Stringency_actual float32 `json:"stringency_actual"`
+	Stringency        float32 `json:"stringency"`
+}
+
 func connect(settings Settings) (db *sql.DB, err error) {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", settings.User, settings.Pass, settings.Host, settings.Port, settings.Name)
@@ -86,4 +94,25 @@ func ReturnId(query string, s Settings) (id int, err error) {
 		}
 	}
 	return id, nil
+}
+
+func ReturnMulti(query string, s Settings) (list []GenTable, err error) {
+	db, err := connect(s)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	genTable := GenTable{}
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		err := rows.Scan(&genTable.Data_value, &genTable.Confirmed, &genTable.Deaths, &genTable.Stringency_actual, &genTable.Stringency)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, genTable)
+	}
+	return list, nil
 }

@@ -11,10 +11,10 @@ import (
 
 func main() {
 	app := &application{}
-	//	app.settings.migrationDir = "migrations"
+	// app.settings.migrationDir = "migrations"
 	app.settings.migrationDir = "/app/migrations"
 	app.settings.endPoint = "0.0.0.0:5000"
-	//	app.dbSettings.Host = "localhost"
+	// app.dbSettings.Host = "localhost"
 	app.dbSettings.Host = "db"
 	app.dbSettings.Name = "covid19"
 	app.dbSettings.Port = "3306"

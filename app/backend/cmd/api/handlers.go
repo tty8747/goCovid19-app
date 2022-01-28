@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -48,11 +49,11 @@ func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
 
 		countryId, err := database.ReturnId(queryCountries, app.dbSettings)
 		if err != nil {
-			app.errLog.Println(err)
+			app.errLog.Fatal(err)
 		}
 		dateId, err := database.ReturnId(queryDates, app.dbSettings)
 		if err != nil {
-			app.errLog.Println(err)
+			app.errLog.Fatal(err)
 		}
 		query := fmt.Sprintf("INSERT INTO `cases`(`country_id`,`date_id`,`confirmed`,`deaths`,`stringency_actual`,`stringency`) VALUES ('%d','%d',%d,%d,%f,%f);", countryId, dateId, elem.Confirmed, elem.Deaths, elem.StringencyActual, elem.Stringency)
 
@@ -62,28 +63,28 @@ func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//specify HTTP status code
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "ok")
 }
 
-// func (app *application) response(w http.ResponseWriter, r *http.Request) {
-//
-// 	//Retrieve data
-// 	// data := prepareResponse()
-// 	data := app.request()
-//
-// 	//update content type
-// 	w.Header().Set("Content-Type", "application/json")
-//
-// 	//specify HTTP status code
-// 	w.WriteHeader(http.StatusOK)
-//
-// 	//convert struct to JSON
-// 	jsonResponse, err := json.Marshal(data)
-// 	if err != nil {
-// 		return
-// 	}
-//
-// 	//update response
-// 	w.Write(jsonResponse)
-// }
+func (app *application) response(w http.ResponseWriter, r *http.Request) {
+	query := "SELECT dates.date_value,cases.confirmed,cases.deaths, cases.stringency_actual,cases.stringency FROM cases INNER JOIN countries ON countries.id=cases.country_id INNER JOIN dates ON dates.id=cases.date_id WHERE countries.code='RUS' AND date_value  BETWEEN '2022-01-15' AND '2022-01-28';"
+	//Retrieve data
+	data, err := database.ReturnMulti(query, app.dbSettings)
+	if err != nil {
+		app.errLog.Fatal(err)
+	}
+	//update content type
+	w.Header().Set("Content-Type", "application/json")
+
+	//specify HTTP status code
+	w.WriteHeader(http.StatusOK)
+
+	//convert struct to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return
+	}
+	w.Write(jsonData)
+}
