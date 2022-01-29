@@ -10,8 +10,26 @@ import (
 )
 
 func (app *application) healthCheck(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.notAllowed(w)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "API is up and running")
+	fmt.Fprintf(w, "healthy")
+}
+
+func (app *application) help(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.notAllowed(w)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	resp := fmt.Sprintf(`Examples:
+curl -D - -s -X GET "http://%s/v1/health-check"
+curl -D - -s -X GET "http://%s/v1/help"
+curl -D - -s -X GET "http://%s/v1/refresh_data"
+curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"`, r.Host, r.Host, r.Host, r.Host)
+	fmt.Fprintf(w, resp)
 }
 
 func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +110,6 @@ func (app *application) response(w http.ResponseWriter, r *http.Request) {
 		}
 		vars[elem] = v[0]
 	}
-	log.Println(vars["countryCode"])
 
 	query := fmt.Sprintf("SELECT dates.date_value,cases.confirmed,cases.deaths, cases.stringency_actual,cases.stringency FROM cases INNER JOIN countries ON countries.id=cases.country_id INNER JOIN dates ON dates.id=cases.date_id WHERE countries.code='%s' AND date_value BETWEEN '%s' AND '%s' ORDER BY %s ASC;", vars["countryCode"], vars["dateFrom"], vars["dateTo"], vars["sortBy"])
 	log.Println(query)

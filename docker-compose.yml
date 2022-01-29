@@ -36,7 +36,9 @@ services:
         condition: service_healthy
     build: app/backend
     ports:
-      - 8080:5000
+      - 8080:7000
     links:
       - db:mysql
+    environment:
+      - APP_ENDPOINT=0.0.0.0:7000
     command: ["/app/api"]

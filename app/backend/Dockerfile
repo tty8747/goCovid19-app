@@ -25,6 +25,9 @@ ENV MIGRATIONS_DIR=/app/migrations
 
 COPY --from=build /app/bin/api-linux /app/api
 COPY --from=build /app/migrations /app/migrations
+COPY --from=build /app/configs /app/configs
+
+WORKDIR /app
 
 # ARG USERNAME=jarvis \
 #     USER_UID=11000 \
@@ -37,4 +40,4 @@ COPY --from=build /app/migrations /app/migrations
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "/app/api", "-dir", "$MIGRATIONS_DIR", "-host", "$DB_HOSTNAME"]
+CMD ["/app/api"]

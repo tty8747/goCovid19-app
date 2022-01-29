@@ -6,27 +6,31 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/spf13/viper"
 	"github.com/tty8747/goCovid19/cmd/database"
 )
 
 func main() {
 	app := &application{}
-	// app.settings.migrationDir = "migrations"
-	app.settings.migrationDir = "/app/migrations"
-	app.settings.endPoint = "0.0.0.0:5000"
-	// app.dbSettings.Host = "localhost"
-	app.dbSettings.Host = "db"
-	app.dbSettings.Name = "covid19"
-	app.dbSettings.Port = "3306"
-	app.dbSettings.User = "covid19"
-	app.dbSettings.Pass = "Johtae5j"
-	app.dbSettings.Reset = true
-
-	addr := flag.String("addr", app.settings.endPoint, "API HTTP address")
-	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	if err := initConfigs(); err != nil {
+		log.Fatalf("error initializing configs: %s", err.Error())
+	}
+
+	app.settings.migrationDir = viper.GetString("migration_dir")
+	app.settings.endPoint = viper.GetString("app_endpoint")
+	app.dbSettings.Host = viper.GetString("db_host")
+	app.dbSettings.Name = viper.GetString("db_name")
+	app.dbSettings.Port = viper.GetString("db_port")
+	app.dbSettings.User = viper.GetString("db_user")
+	app.dbSettings.Pass = viper.GetString("db_pass")
+	app.dbSettings.Reset = viper.GetBool("data_reset")
+
+	addr := flag.String("addr", app.settings.endPoint, "API HTTP address")
+	flag.Parse()
 
 	srv := &http.Server{
 		Addr:     *addr,
@@ -64,4 +68,13 @@ type Obj struct {
 type appSettings struct {
 	migrationDir string
 	endPoint     string
+}
+
+func initConfigs() error {
+	viper.AddConfigPath("configs")
+	viper.SetConfigName("config")
+	// gets env variables
+	viper.AutomaticEnv()
+	// gets data from config
+	return viper.ReadInConfig()
 }
