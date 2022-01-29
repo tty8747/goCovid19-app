@@ -15,6 +15,11 @@ func (app *application) healthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		app.notAllowed(w)
+		return
+	}
 
 	// Migrations
 	if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
@@ -69,7 +74,29 @@ func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) response(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT dates.date_value,cases.confirmed,cases.deaths, cases.stringency_actual,cases.stringency FROM cases INNER JOIN countries ON countries.id=cases.country_id INNER JOIN dates ON dates.id=cases.date_id WHERE countries.code='RUS' AND date_value  BETWEEN '2022-01-15' AND '2022-01-28';"
+	// Check method
+	if r.Method != http.MethodGet {
+		app.notAllowed(w)
+		return
+	}
+
+	// Get query params
+	vars := make(map[string]string)
+	var varNames [4]string = [4]string{"countryCode", "dateFrom", "dateTo", "sortBy"}
+
+	for _, elem := range varNames {
+		v, ok := r.URL.Query()[elem]
+		if !ok {
+			app.paramsReq(w)
+			return
+		}
+		vars[elem] = v[0]
+	}
+	log.Println(vars["countryCode"])
+
+	query := fmt.Sprintf("SELECT dates.date_value,cases.confirmed,cases.deaths, cases.stringency_actual,cases.stringency FROM cases INNER JOIN countries ON countries.id=cases.country_id INNER JOIN dates ON dates.id=cases.date_id WHERE countries.code='%s' AND date_value BETWEEN '%s' AND '%s' ORDER BY %s ASC;", vars["countryCode"], vars["dateFrom"], vars["dateTo"], vars["sortBy"])
+	log.Println(query)
+
 	//Retrieve data
 	data, err := database.ReturnMulti(query, app.dbSettings)
 	if err != nil {

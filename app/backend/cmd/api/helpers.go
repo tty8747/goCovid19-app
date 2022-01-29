@@ -20,3 +20,11 @@ func (app *application) clientErr(w http.ResponseWriter, status int) {
 func (app *application) notFound(w http.ResponseWriter) {
 	app.clientErr(w, http.StatusNotFound)
 }
+
+func (app *application) notAllowed(w http.ResponseWriter) {
+	app.clientErr(w, http.StatusMethodNotAllowed)
+}
+
+func (app *application) paramsReq(w http.ResponseWriter) {
+	app.clientErr(w, http.StatusBadRequest)
+}
