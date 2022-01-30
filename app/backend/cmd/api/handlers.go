@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/tty8747/goCovid19/cmd/database"
 )
@@ -24,11 +25,18 @@ func (app *application) help(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	resp := fmt.Sprintf(`Examples:
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "Unknown..."
+	}
+	resp := fmt.Sprintf(`Hostname: %s
+
+Examples:
 curl -D - -s -X GET "http://%s/v1/health-check"
 curl -D - -s -X GET "http://%s/v1/help"
 curl -D - -s -X GET "http://%s/v1/refresh_data"
-curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"`, r.Host, r.Host, r.Host, r.Host)
+curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"
+`, hostname, r.Host, r.Host, r.Host, r.Host)
 	fmt.Fprintf(w, resp)
 }
 
