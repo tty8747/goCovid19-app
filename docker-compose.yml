@@ -30,6 +30,14 @@ services:
       - GOOSE_DBSTRING=$MARIADB_USER:$MARIADB_PASSWORD@tcp(mysql:3306)/$MARIADB_DATABASE
     command: ["goose", "up"]
 
+  app_filling_data:
+    depends_on:
+      - goose
+    build: app/backend
+    links:
+      - db:mysql
+    command: ["/app/api", "-fill=true"]
+
   app:
     depends_on:
       db:
