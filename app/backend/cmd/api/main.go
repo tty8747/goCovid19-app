@@ -30,7 +30,22 @@ func main() {
 	app.dbSettings.Reset = viper.GetBool("data_reset")
 
 	addr := flag.String("addr", app.settings.endPoint, "API HTTP address")
+	getData := flag.Bool("fill", false, "If it is true it fills db")
 	flag.Parse()
+
+	if *getData {
+		// Migrations
+		if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
+			app.errLog.Fatal(err)
+		}
+
+		// Get data
+		app.parser()
+
+		// Insert data
+		app.insertData()
+		return
+	}
 
 	srv := &http.Server{
 		Addr:     *addr,
