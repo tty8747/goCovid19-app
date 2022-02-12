@@ -4,31 +4,55 @@
 
 {{define "main"}}
       <div class="container">
-        <form action="/query" method="POST">
+        <form action="/query/" method="POST">
           <div class="row">
             <div class="col-md-4">
               <label for="dateFrom" class="form-label">Date from:</label>
-              <input type="date" name="dateFrom" id="dateFrom" class="form-control">          
+              {{ if .DateFrom }}
+                <input type="date" name="dateFrom" id="dateFrom" class="form-control" value="{{ .DateFrom }}">
+              {{ else }}
+                <input type="date" name="dateFrom" id="dateFrom" class="form-control">
+              {{ end }}
             </div>
             <div class="col-md-4">
               <label for="dateTo" class="form-label">Date to:</label>
-              <input type="date" name="dateTo" id="dateTo" class="form-control">          
-            </div>      
+              {{ if .DateTo }}
+                <input type="date" name="dateTo" id="dateTo" class="form-control" value="{{ .DateTo }}">
+              {{ else }}
+                <input type="date" name="dateTo" id="dateTo" class="form-control">
+              {{ end }}
+            </div>
           </div>
           <br />
           <div class="row">
             <div class="col-md-4">
               <label for="countrySelect" class="form-label">Country:</label>
               <select class="form-select" name="countrySel" id="countrySelect" aria-label="A choose of countrues">
-                <option selected>Choose a country</option>
-                <option value="RUS">Russia</option>
-                <option value="IRL">Ireland</option>
-                <option value="GER">Germany</option>
+                {{ if .CountrySelFull }}
+                  <option selected>{{ .CountrySelFull }}</option>
+                {{ else }}
+                  <option selected>Choose a country</option>
+                {{ end }}
+                {{ range $key, $value := .MapCountries }}
+                  <option value="{{ $value }}">{{ $key }}</option>
+                {{ end }}
               </select>
             </div>
             <div class="col-md-4">
               <label class="form-label">Order by:
                 <div class="form-check">
+                  {{ if eq .RadioDD "date_value"}}
+                  <input class="form-check-input" type="radio" name="radioDD" value="date_value" id="radioDate" checked>
+                  <label class="form-check-label" for="radioDate">
+                    date
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="radioDD" value="deaths" id="radioDeaths">
+                  <label class="form-check-label" for="radioDeaths">
+                    deaths
+                  </label>
+                  {{ else }}
                   <input class="form-check-input" type="radio" name="radioDD" value="date_value" id="radioDate">
                   <label class="form-check-label" for="radioDate">
                     date
@@ -39,6 +63,7 @@
                   <label class="form-check-label" for="radioDeaths">
                     deaths
                   </label>
+                  {{ end }}
                 </div>
               </label>
             </div>
@@ -54,35 +79,29 @@
         <table class="table align-middle">
           <thead>
             <tr>
-              <th>data_value</th>
-              <th>confirmed</th>
-              <th>deaths</th>
-              <th>stringency_actual</th>
-              <th>stringency</th>
+              <th>Date<!-- data_value--></th>
+              <th>Confirmed</th>
+              <th>Deaths</th>
+              <th>Stringency actual</th>
+              <th>Stringency</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>01.01.2021</td>
-              <td>10</td>
-              <td>11</td>
-              <td>5</td>
-              <td>6</td>
-            </tr>
-            <tr>
-              <td>02.01.2021</td>
-              <td>4</td>
-              <td>3</td>
-              <td>11</td>
-              <td>8</td>
-            </tr>
-            <tr>
-              <td>03.01.2021</td>
-              <td>7</td>
-              <td>9</td>
-              <td>7</td>
-              <td>9</td>
-            </tr>
+            {{ if not .Message }}
+              {{ range .Data }}
+                <tr>
+                  <td>{{ .Data_value }}</td>
+                  <td>{{ .Confirmed }}</td>
+                  <td>{{ .Deaths }}</td>
+                  <td>{{ .Stringency_actual }}</td>
+                  <td>{{ .Stringency }}</td>
+                </tr>
+              {{ else }}
+                <p class="alert alert-info">Data not found!</p>
+              {{ end }}
+            {{ else }}
+              <p class="alert alert-warning">{{ .Message }}</p>
+            {{ end }}
           </tbody>
         </table>
       </div>
