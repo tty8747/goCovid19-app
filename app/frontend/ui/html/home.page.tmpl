@@ -8,31 +8,19 @@
           <div class="row">
             <div class="col-md-4">
               <label for="dateFrom" class="form-label">Date from:</label>
-              {{ if .DateFrom }}
-                <input type="date" name="dateFrom" id="dateFrom" class="form-control" value="{{ .DateFrom }}">
-              {{ else }}
                 <input type="date" name="dateFrom" id="dateFrom" class="form-control">
-              {{ end }}
             </div>
             <div class="col-md-4">
               <label for="dateTo" class="form-label">Date to:</label>
-              {{ if .DateTo }}
-                <input type="date" name="dateTo" id="dateTo" class="form-control" value="{{ .DateTo }}">
-              {{ else }}
                 <input type="date" name="dateTo" id="dateTo" class="form-control">
-              {{ end }}
             </div>
           </div>
           <br />
           <div class="row">
             <div class="col-md-4">
               <label for="countrySelect" class="form-label">Country:</label>
-              <select class="form-select" name="countrySel" id="countrySelect" aria-label="A choose of countrues">
-                {{ if .CountrySelFull }}
-                  <option selected>{{ .CountrySelFull }}</option>
-                {{ else }}
+              <select class="form-select" name="countrySel" id="countrySelect" aria-label="A choose of countries">
                   <option selected>Choose a country</option>
-                {{ end }}
                 {{ range $key, $value := .MapCountries }}
                   <option value="{{ $value }}">{{ $key }}</option>
                 {{ end }}
@@ -41,18 +29,6 @@
             <div class="col-md-4">
               <label class="form-label">Order by:
                 <div class="form-check">
-                  {{ if eq .RadioDD "date_value"}}
-                  <input class="form-check-input" type="radio" name="radioDD" value="date_value" id="radioDate" checked>
-                  <label class="form-check-label" for="radioDate">
-                    date
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="radioDD" value="deaths" id="radioDeaths">
-                  <label class="form-check-label" for="radioDeaths">
-                    deaths
-                  </label>
-                  {{ else }}
                   <input class="form-check-input" type="radio" name="radioDD" value="date_value" id="radioDate">
                   <label class="form-check-label" for="radioDate">
                     date
@@ -63,7 +39,6 @@
                   <label class="form-check-label" for="radioDeaths">
                     deaths
                   </label>
-                  {{ end }}
                 </div>
               </label>
             </div>
