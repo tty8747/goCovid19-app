@@ -44,7 +44,6 @@ type application struct {
 	DateFrom, DateTo string
 	RadioDD          string
 	CountrySel       string
-	CountrySelFull   string
 	Message          string
 	Data             []genTable
 	api              apiVariables

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -68,25 +67,8 @@ func (app *application) getCountryNames(list []string) map[string]string {
 				m[string("Kosovo")] = elem
 			}
 		} else {
-			// m[string(string(this.Name.Official))] = elem
 			m[string(string(this.Name.Common))] = elem
 		}
 	}
 	return m
-}
-
-// makes Common name from alpha-3 code
-func (app *application) setCountryNameFull(s string) string {
-	query := gountries.New()
-	this, err := query.FindCountryByAlpha(s)
-	if err != nil {
-		if err.Error() == "gountries error. Invalid code format: Choose a country" || err.Error() == "gountries error. Invalid code format: " {
-			return s
-		} else {
-			log.Println(">>>", err)
-			app.errLog.Println(err.Error())
-			return s
-		}
-	}
-	return this.Name.Common
 }
