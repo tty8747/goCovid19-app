@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 
 	"github.com/pariz/gountries"
@@ -32,7 +31,7 @@ func (app *application) paramsReq(w http.ResponseWriter) {
 	app.clientErr(w, http.StatusBadRequest)
 }
 
-func (app *application) buildLink(r *http.Request, hostname string, port string, apiVers string) (string, bool) {
+func (app *application) buildLink(r *http.Request, alias string, hostname string, port string, apiVers string) (string, bool) {
 	app.DateFrom = r.FormValue("dateFrom")
 	app.DateTo = r.FormValue("dateTo")
 	app.RadioDD = r.FormValue("radioDD")
@@ -44,11 +43,7 @@ func (app *application) buildLink(r *http.Request, hostname string, port string,
 		return "Fields are empty", false
 	}
 
-	connString := fmt.Sprintf("http://%s:%s/%s/data?countryCode=%s&&dateFrom=%s&&dateTo=%s&&sortBy=%s", hostname, port, apiVers, app.CountrySel, app.DateFrom, app.DateTo, app.RadioDD)
-	_, err := url.ParseRequestURI(connString)
-	if err != nil {
-		return "Something is wrong", false
-	}
+	connString := fmt.Sprintf("http://%s:%s/%s/%s?countryCode=%s&&dateFrom=%s&&dateTo=%s&&sortBy=%s", hostname, port, apiVers, alias, app.CountrySel, app.DateFrom, app.DateTo, app.RadioDD)
 	app.Message = ""
 	return connString, true
 }

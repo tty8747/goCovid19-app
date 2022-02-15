@@ -48,6 +48,7 @@ type application struct {
 	Data             []genTable
 	api              apiVariables
 	MapCountries     map[string]string
+	block            bool
 }
 
 type genTable struct {
