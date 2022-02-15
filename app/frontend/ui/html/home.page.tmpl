@@ -20,7 +20,7 @@
             <div class="col-md-4">
               <label for="countrySelect" class="form-label">Country:</label>
               <select class="form-select" name="countrySel" id="countrySelect" aria-label="A choose of countries">
-                  <option selected>Choose a country</option>
+                  <option selected="default" value="default">Choose a country</option>
                 {{ range $key, $value := .MapCountries }}
                   <option value="{{ $value }}">{{ $key }}</option>
                 {{ end }}
