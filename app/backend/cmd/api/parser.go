@@ -114,6 +114,7 @@ func collectData(b []byte) (obj Obj) {
 func (app *application) parser() {
 
 	// generates a list of dates
+	app.listOfDates = nil
 	app.listOfDates = genListOfDates()
 
 	// makes a link
@@ -123,9 +124,11 @@ func (app *application) parser() {
 	rawData := getData(link)
 
 	// receive countries
+	app.cList = nil
 	app.cList = getListOfCoutries(rawData)
 
 	// put data to struct
+	app.listObj = nil
 	for _, date := range app.listOfDates {
 		for _, country := range app.cList {
 			// skip null objects
