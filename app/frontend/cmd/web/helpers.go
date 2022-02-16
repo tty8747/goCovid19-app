@@ -60,8 +60,9 @@ func (app *application) getCountryNames(list []string) map[string]string {
 	for _, elem := range list {
 		this, err := query.FindCountryByAlpha(elem)
 		if err != nil {
-			m[string(elem)] = elem
-			if elem == "RKS" {
+			if elem != "RKS" {
+				m[string(elem)] = elem
+			} else {
 				m[string("Kosovo")] = elem
 			}
 		} else {
