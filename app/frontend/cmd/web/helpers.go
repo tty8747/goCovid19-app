@@ -73,7 +73,7 @@ func (app *application) getCountryNames(list []string) map[string]string {
 
 // get api state
 func (app *application) getApiState() bool {
-	alias := "health-check"
+	alias := "state"
 	connString := fmt.Sprintf("http://%s:%s/%s/%s", *app.api.hostname, *app.api.port, *app.api.apiVers, alias)
 	response, err := http.Get(connString)
 	if err != nil {
@@ -86,9 +86,8 @@ func (app *application) getApiState() bool {
 	if err != nil {
 		app.errLog.Fatalln(err.Error())
 	}
-	log.Printf("Api state: %s", string(body))
-	body1 := "true"
-	boolValue, err := strconv.ParseBool(body1)
+	log.Printf("Is api blocked: %s", string(body))
+	boolValue, err := strconv.ParseBool(string(body))
 	if err != nil {
 		log.Fatal(err)
 	}

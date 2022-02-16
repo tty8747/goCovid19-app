@@ -19,7 +19,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if app.block {
+	if app.block = app.getApiState(); app.block {
 		app.Message = "Database is updating. Wait for a while ..."
 	}
 
@@ -50,7 +50,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 func (app *application) query(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost || r.Method == http.MethodGet {
 
-		if app.block {
+		if app.block = app.getApiState(); app.block {
 			app.Message = "Database is updating. Wait for a while ..."
 		} else {
 
@@ -114,7 +114,7 @@ func (app *application) refreshData(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.notAllowed(w)
 		return
-	} else if app.block {
+	} else if app.block = app.getApiState(); app.block {
 		app.Message = "Database is updating. Wait for a while ..."
 	} else {
 		alias := "refresh_data"
