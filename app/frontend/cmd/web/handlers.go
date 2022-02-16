@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -160,7 +162,17 @@ func (app *application) refreshData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = ts.Execute(w, &app)
+	brokenPipe := errors.New("write: broken pipe")
+	var ok bool
 	if err != nil {
+		ok = strings.Contains(err.Error(), brokenPipe.Error())
+	} else {
+		ok = false
+	}
+
+	if ok {
+		log.Println("Client has gone, write: broken pipe")
+	} else if err != nil {
 		log.Println(err)
 		app.errLog.Println(err.Error())
 		app.serverErr(w, err)
