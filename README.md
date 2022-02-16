@@ -11,9 +11,3 @@ Plan:
   - stringency_actual
   - stringency
 - Output data by country_code in form of a table and sort them by deaths (or date_value which is the same) in ascending order
-
-## Run backend:
-
-```bash
-make -C app/backend
-```
