@@ -1,0 +1,10 @@
+# migration_dir: "migrations"
+migration_dir: "/app/migrations"
+app_endpoint: "0.0.0.0:5000"
+db_host: "db"
+# db_host: "localhost"
+db_name: "covid19"
+db_port: "3306"
+db_user: "covid19"
+db_pass: "Johtae5j"
+data_reset: true
