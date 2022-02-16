@@ -34,9 +34,10 @@ func (app *application) help(w http.ResponseWriter, r *http.Request) {
 Examples:
 curl -D - -s -X GET "http://%s/v1/health-check"
 curl -D - -s -X GET "http://%s/v1/help"
+curl -D - -s -X GET "http://%s/v1/state"
 curl -D - -s -X GET "http://%s/v1/refresh_data"
 curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"
-`, hostname, r.Host, r.Host, r.Host, r.Host)
+`, hostname, r.Host, r.Host, r.Host, r.Host, r.Host)
 	fmt.Fprintf(w, resp)
 }
 
@@ -47,13 +48,11 @@ func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Migrations
-	if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
-		app.errLog.Fatal(err)
-	}
-
 	// Get data
 	app.parser()
+
+	// Purge data from db tables
+	app.purgeTables()
 
 	// Insert data
 	app.insertData()
@@ -103,4 +102,23 @@ func (app *application) response(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(jsonData)
+}
+
+func (app *application) state(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		app.notAllowed(w)
+		return
+	}
+	app.block, _ = database.ReturnBlockValue("SELECT `block` FROM `block`;", app.dbSettings)
+
+	if app.block {
+		//specify HTTP status code
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "true")
+	} else {
+		//specify HTTP status code
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "false")
+	}
 }

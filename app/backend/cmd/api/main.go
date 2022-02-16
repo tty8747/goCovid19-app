@@ -34,8 +34,10 @@ func main() {
 	flag.Parse()
 
 	if *getData {
+
 		// Migrations
 		if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
+			log.Println(err)
 			app.errLog.Fatal(err)
 		}
 
@@ -44,6 +46,7 @@ func main() {
 
 		// Insert data
 		app.insertData()
+
 		return
 	}
 
@@ -66,6 +69,7 @@ type application struct {
 	listObj     []Obj
 	settings    appSettings
 	dbSettings  database.Settings
+	block       bool
 }
 
 // Makes struct for selected object

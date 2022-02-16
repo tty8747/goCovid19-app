@@ -116,3 +116,17 @@ func ReturnMulti(query string, s Settings) (list []GenTable, err error) {
 	}
 	return list, nil
 }
+
+func ReturnBlockValue(query string, s Settings) (b bool, err error) {
+	db, err := connect(s)
+	if err != nil {
+		return true, err
+	}
+	defer db.Close()
+	//Retrieve data
+	row := db.QueryRow(query)
+	if err = row.Scan(&b); err != nil {
+		return true, err
+	}
+	return b, err
+}

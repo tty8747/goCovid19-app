@@ -7,7 +7,35 @@ import (
 	"github.com/tty8747/goCovid19/cmd/database"
 )
 
+//set block value
+func (app *application) setBlock(b bool) error {
+	if err := database.AddData("DELETE FROM `block`;", app.dbSettings); err != nil {
+		return err
+	}
+	query := fmt.Sprintf("INSERT INTO `block`(`block`) VALUES (%t);", b)
+	if err := database.AddData(query, app.dbSettings); err != nil {
+		return err
+	}
+	return nil
+}
+
+//purge all tables
+func (app *application) purgeTables() error {
+	var queryPurge []string = []string{"DELETE FROM cases;", "DELETE FROM dates;", "DELETE FROM countries;"}
+	for _, elem := range queryPurge {
+		log.Println(elem)
+		if err := database.AddData(elem, app.dbSettings); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (app *application) insertData() {
+	if err := app.setBlock(true); err != nil {
+		app.errLog.Fatal(err)
+	}
+
 	// Insert countries into sql table countries
 	for _, elem := range app.cList {
 		query := fmt.Sprintf("INSERT INTO `countries`(`code`) VALUES ('%s');", elem)
@@ -45,5 +73,9 @@ func (app *application) insertData() {
 		if err := database.AddData(query, app.dbSettings); err != nil {
 			app.errLog.Fatal(err)
 		}
+	}
+
+	if err := app.setBlock(false); err != nil {
+		app.errLog.Fatal(err)
 	}
 }
