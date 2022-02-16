@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/pariz/gountries"
 )
@@ -66,4 +69,28 @@ func (app *application) getCountryNames(list []string) map[string]string {
 		}
 	}
 	return m
+}
+
+// get api state
+func (app *application) getApiState() bool {
+	alias := "health-check"
+	connString := fmt.Sprintf("http://%s:%s/%s/%s", *app.api.hostname, *app.api.port, *app.api.apiVers, alias)
+	response, err := http.Get(connString)
+	if err != nil {
+		app.errLog.Fatalln(err.Error())
+	}
+	defer response.Body.Close()
+
+	// gets array of raw bytes
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		app.errLog.Fatalln(err.Error())
+	}
+	log.Printf("Api state: %s", string(body))
+	body1 := "true"
+	boolValue, err := strconv.ParseBool(body1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return boolValue
 }
