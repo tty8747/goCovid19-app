@@ -34,7 +34,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		app.errLog.Println(err.Error())
+		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
 		app.serverErr(w, err)
 		return
