@@ -48,6 +48,11 @@ func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// set block
+	if err := app.setBlock(true); err != nil {
+		app.errLog.Fatal(err)
+	}
+
 	// Get data
 	app.parser()
 
