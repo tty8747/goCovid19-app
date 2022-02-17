@@ -146,6 +146,8 @@ func (app *application) refreshData(w http.ResponseWriter, r *http.Request) {
 		// --- end of data preparation
 	}
 
+	w.Header().Add("X-INFO", "OK")
+
 	files := []string{
 		"./ui/html/home.page.tmpl",
 		"./ui/html/base.layout.tmpl",
