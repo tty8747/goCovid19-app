@@ -36,10 +36,10 @@ func main() {
 	if *getData {
 
 		// Migrations
-		if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
-			log.Println(err)
-			app.errLog.Fatal(err)
-		}
+		// if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
+		// 	log.Println(err)
+		// 	app.errLog.Fatal(err)
+		// }
 
 		// Get data
 		app.parser()
