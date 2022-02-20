@@ -94,3 +94,28 @@ func (app *application) getApiState() bool {
 	}
 	return boolValue
 }
+
+// func wrapper for goroutine
+func (app *application) routineWrapper(connString string) {
+	// --- start of data preparation
+	// gets raw data
+	app.block = true
+	response, err := http.Get(connString)
+	if err != nil {
+		app.block = false
+		app.errLog.Fatalln(err.Error())
+	}
+	defer response.Body.Close()
+
+	// gets array of raw bytes
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		app.block = false
+		app.errLog.Fatalln(err.Error())
+	}
+
+	log.Printf("Data is updated. Status: %s", string(body))
+	app.block = false
+
+	// --- end of data preparation
+}
