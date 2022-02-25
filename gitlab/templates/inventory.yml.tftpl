@@ -1,0 +1,17 @@
+${yamlencode({
+  "aws": {
+    "vars": {
+      "ansible_ssh_common_args": "-o StrictHostKeyChecking=no"
+      "efs_dnsname": "${efs_dnsname}"
+      "efs_port": "${efs_port}"
+      "efs_id": "${efs_id}"}
+    "hosts": {
+        "${name}": {
+          "ansible_host": "${fqdn}"
+          "ansible_user": "${ansible_user}"
+          "ansible_port": "${ansible_port}"
+        }
+    }
+  }
+})}
+
