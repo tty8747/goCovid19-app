@@ -17,7 +17,7 @@ data "template_file" "gen_inventory" {
       efs_dnsname  = aws_efs_file_system.gitlab.dns_name
       efs_port     = "2049"
       efs_id       = aws_efs_file_system.gitlab.id
-      ansible_user = "ec2-user"
+      ansible_user = "ubuntu"
       ansible_port = "8822"
     }
   )

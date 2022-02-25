@@ -3,7 +3,7 @@ data "aws_ami" "ubuntu20" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-kernel-5.*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
 
   filter {
@@ -11,7 +11,7 @@ data "aws_ami" "ubuntu20" {
     values = ["hvm"]
   }
 
-  owners = ["amazon"]
+  owners = ["099720109477"] # Canonical
 }
 
 resource "aws_key_pair" "homepc" {
@@ -59,5 +59,4 @@ resource "aws_instance" "gitlab" {
   depends_on = [
     aws_efs_access_point.gitlab,
   ]
-
 }
