@@ -1,0 +1,8 @@
+upstream gitlab_ssh {
+  server localhost:10022;
+}
+
+server {
+  listen 22;
+  proxy_pass gitlab_ssh;
+}

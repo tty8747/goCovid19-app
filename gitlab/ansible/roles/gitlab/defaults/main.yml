@@ -1,0 +1,4 @@
+---
+efs_mountpath: /mnt/efs
+gitlab_home: "{{ efs_mountpath }}/gitlab"
+remove_gitlab_data: no

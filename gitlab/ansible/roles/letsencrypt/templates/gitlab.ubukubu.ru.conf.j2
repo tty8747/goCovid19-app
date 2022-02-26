@@ -1,0 +1,65 @@
+upstream gitlab {
+  server localhost:10080;
+}
+
+server {
+  listen 80;
+
+  server_name {{ domain_name }};
+
+  location /.well-known/ {
+    root /opt/acme;
+  }
+
+  location / {
+    return 301 https://{{ domain_name }}/$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl http2;
+
+
+  ssl_certificate {{ efs_mountpath }}/letsencrypt/live/{{ domain_name }}/fullchain.pem;
+  ssl_certificate_key {{ efs_mountpath }}/letsencrypt/live/{{ domain_name }}/privkey.pem;
+  
+  ssl_dhparam /etc/ssl/certs/dhparam.pem;
+
+  server_name {{ domain_name }};
+
+  location / {
+    try_files $uri @gitlab_location;
+  }
+
+  location @gitlab_location {
+    proxy_pass          http://gitlab;
+    proxy_set_header    X-Real-IP $remote_addr;
+    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header    Host $http_host;
+    proxy_redirect      off;
+    proxy_set_header    X-Forwarded-Proto $scheme;
+    proxy_pass_header   Set-Cookie;
+
+    fastcgi_connect_timeout 60;
+    fastcgi_send_timeout    2400;
+    fastcgi_read_timeout    2400;
+  }
+
+  error_page            500 502 503 504 /500.html;
+  client_max_body_size  0;
+  keepalive_timeout     10;
+  proxy_buffering 	    off;
+
+  ssl_session_cache             shared:SSL:10m;
+  ssl_session_timeout           5m;
+  ssl_prefer_server_ciphers     on;
+  ssl_ciphers                   ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5;
+  add_header                    Strict-Transport-Security "max-age=31536000; includeSubdomains;";
+  add_header                    X-Frame-Options DENY;
+  add_header                    X-Content-Type-Options nosniff;
+  ssl_stapling                  on;
+  ssl_stapling_verify           on;
+  ssl_protocols                 TLSv1.2;
+  resolver                      1.1.1.1 8.8.8.8 valid=300s;
+  resolver_timeout              5s;
+}

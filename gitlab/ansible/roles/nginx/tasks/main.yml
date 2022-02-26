@@ -1,0 +1,63 @@
+---
+- name: Become block
+  block:
+  - name: Install nginx
+    ansible.builtin.apt:
+      name: nginx
+      state: present
+
+  - name: Create directory for stream
+    ansible.builtin.file:
+      path: /etc/nginx/stream-conf
+      state: directory
+      owner: root
+      group: root
+      mode: '0644'
+  
+  - name: Put nginx config
+    ansible.builtin.template:
+      src: templates/nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: Reload nginx
+
+  - name: Put config for stream
+    ansible.builtin.template:
+      src: templates/stream.conf.j2
+      dest: /etc/nginx/stream-conf/stream.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: Reload nginx
+  
+  - name: Put virtual hosts
+    ansible.builtin.template:
+      src: "templates/{{ conf_name }}.j2"
+      dest: "/etc/nginx/sites-available/{{ conf_name }}"
+      owner: root
+      group: root
+      mode: '0644'
+    notify: Reload nginx
+  
+  - name: Remove nginx default config
+    ansible.builtin.file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+    notify: Reload nginx
+  
+  - name: Create a symbolic link
+    ansible.builtin.file:
+      src: "/etc/nginx/sites-available/{{ conf_name }}"
+      dest: "/etc/nginx/sites-enabled/{{ conf_name }}"
+      owner: root
+      group: root
+      state: link
+    notify: Reload nginx
+  
+  - name: Ensure nginx is running
+    ansible.builtin.service:
+      name: nginx
+      state: started
+  become: yes

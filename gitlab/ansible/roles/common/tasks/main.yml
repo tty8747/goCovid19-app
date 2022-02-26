@@ -1,0 +1,12 @@
+---
+
+- name: Set timezone to your timezone
+  timezone:
+    name: "{{ timezone }}"
+  become: yes
+
+- name: Update cache
+  apt:
+    update_cache: "{{ update_cache }}"
+    cache_valid_time: "{{ cache_valid_time }}"
+  become: yes
