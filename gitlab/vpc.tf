@@ -12,7 +12,7 @@ resource "aws_subnet" "gitlab" {
   vpc_id                  = aws_vpc.gitlab.id
   cidr_block              = var.subnet
   map_public_ip_on_launch = "true"
-  availability_zone       = "eu-central-1a"
+  availability_zone       = var.subnet_zone
 
   tags = {
     Name = "gitlab"

@@ -26,3 +26,8 @@ variable "subnet" {
   type    = string
   default = "192.168.18.0/24"
 }
+
+variable "subnet_zone" {
+  type    = string
+  default = "eu-central-1a"
+}
