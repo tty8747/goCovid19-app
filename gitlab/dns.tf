@@ -4,7 +4,7 @@ data "cloudflare_zone" "ubukubu" {
 
 resource "cloudflare_record" "gitlab" {
   zone_id = data.cloudflare_zone.ubukubu.zone_id
-  name    = "gitlab"
+  name    = "lab"
   value   = aws_eip.gitlab.public_ip
   type    = "A"
   ttl     = 1

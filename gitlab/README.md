@@ -21,7 +21,7 @@
 - Lose our node:  
   `terraform destroy -target aws_instance.gitlab`
 - Create new node in another region:  
-  `terraform plan -var="subnet_zone=eu-central-1c"`
+  `terraform plan -var="subnet_zone=eu-central-1c"`  
   `terraform apply -var="subnet_zone=eu-central-1c"`
 - Ensure that `remove_gitlab_data` variable is false if you want to save gitlab data:  
   `ansible-playbook -i ansible/inventory/hosts.yml ansible/main.yml`
