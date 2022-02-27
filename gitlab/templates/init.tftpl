@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# Change ssh port from 22 to 8822 
+sed -i 's/#Port 22/Port 8822/' /etc/ssh/sshd_config
+systemctl reload sshd.service

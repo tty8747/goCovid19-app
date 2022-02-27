@@ -1,0 +1,57 @@
+---
+- name: Run docker gitlab without old data
+  community.docker.docker_container:
+    name: gitlab
+    image: gitlab/gitlab-ce:14.8.0-ce.0
+    detach: yes
+    hostname: "{{ domain_name }}"
+    restart_policy: unless-stopped
+    shm_size: 256m
+    state: started
+    ports:
+      - 127.0.0.1:10443:443
+      - 127.0.0.1:10080:80
+      - 127.0.0.1:10022:22
+    volumes:
+      - "{{ gitlab_home }}/config:/etc/gitlab:rw"
+      - "{{ gitlab_home }}/logs:/var/log/gitlab:rw"
+      - "{{ gitlab_home }}/data:/var/opt/gitlab:rw"
+  become: yes
+  when: remove_gitlab_data | bool
+ 
+- name: Run docker gitlab
+  community.docker.docker_container:
+    name: gitlab
+    image: gitlab/gitlab-ce:14.8.0-ce.0
+    detach: yes
+    hostname: "{{ domain_name }}"
+    restart_policy: unless-stopped
+    shm_size: 256m
+    state: started
+    ports:
+      - 127.0.0.1:10443:443
+      - 127.0.0.1:10080:80
+      - 127.0.0.1:10022:22
+    volumes:
+      - "{{ gitlab_home }}/config:/etc/gitlab:rw"
+      - "{{ gitlab_home }}/logs:/var/log/gitlab:rw"
+      - "{{ gitlab_home }}/data:/var/opt/gitlab:rw"
+    env:
+      GITLAB_OMNIBUS_CONFIG: "manage_storage_directories['manage_etc'] = false ; manage_storage_directories['enable'] = false;"
+  become: yes
+  when: not remove_gitlab_data | bool
+
+- name: Get temporary root password
+  community.docker.docker_container_exec:
+    container: gitlab
+    command: grep 'Password:' /etc/gitlab/initial_root_password
+  register: result
+  become: yes
+  ignore_errors: yes
+  tags: get_rootpass
+
+- name: Print stdout
+  debug:
+    msg: "Login: root, password: {{ result.stdout }}"
+  ignore_errors: yes
+  tags: get_rootpass

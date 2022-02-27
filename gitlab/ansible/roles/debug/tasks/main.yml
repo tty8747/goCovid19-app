@@ -1,0 +1,5 @@
+---
+- name: Check variables is set
+  debug:
+    msg: "domain name: {{ domain_name }} ::: efs dnsname: {{ efs_dnsname }} ::: efs port: {{ efs_port }} ::: letsencrypt email: {{ letsencrypts_email }}"
+

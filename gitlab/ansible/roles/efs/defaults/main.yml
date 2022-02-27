@@ -1,0 +1,4 @@
+---
+efs_user: "{{ ansible_user }}"
+efs_dnsname: "fs-0b800879xxxxxxxxx.efs.eu-central-1.amazonaws.com"
+efs_mountpath: /mnt/efs

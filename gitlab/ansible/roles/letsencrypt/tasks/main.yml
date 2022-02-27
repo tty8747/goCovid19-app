@@ -1,0 +1,99 @@
+---
+- name: Become block
+  block:
+  - name: Create letsencrypt directory
+    ansible.builtin.file:
+      path: "{{ efs_mountpath }}/letsencrypt"
+      mode: 0700
+      owner: root
+      group: root
+      state: directory
+
+  - name: Create symlink to letsencrypt directory
+    ansible.builtin.file:
+      src: "{{ efs_mountpath }}/letsencrypt"
+      dest: /etc/letsencrypt
+      mode: 0700
+      owner: root
+      group: root
+      state: link
+
+  - name: Create /opt/acme
+    ansible.builtin.file:
+      path: /opt/acme
+      mode: 0755
+      owner: root
+      group: root
+      state: directory
+  
+  - name: Install letsencrypt
+    ansible.builtin.apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - letsencrypt
+      - openssl
+  
+  - name: Remove nginx default config
+    ansible.builtin.file:
+      path: /etc/nginx/sites-enabled/default.conf
+      state: absent
+    notify: Reload nginx
+  
+  - name: Put virtual temp ssl host
+    ansible.builtin.template:
+      src: "templates/temp.{{ domain_name }}.conf.j2"
+      dest: "/etc/nginx/sites-available/{{ domain_name }}.conf"
+      owner: root
+      group: root
+      mode: 0644
+    notify: reload nginx
+  
+  - name: Create a symbolic link
+    ansible.builtin.file:
+      src: "/etc/nginx/sites-available/{{ domain_name }}.conf"
+      dest: "/etc/nginx/sites-enabled/{{ domain_name }}.conf"
+      owner: root
+      group: root
+      state: link
+    notify: Reload nginx
+  
+  - name: Force handlers
+    ansible.builtin.meta: flush_handlers
+  
+  - name: Create letsencrypt certificate
+    ansible.builtin.command: letsencrypt certonly -n --webroot -w /opt/acme/ -d "{{ domain_name }}" -m "{{ letsencrypts_email }}" --agree-tos
+    args:
+      creates: "{{ efs_mountpath }}/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+    notify: reload nginx
+  
+  - name: Generate dh-params
+    community.crypto.openssl_dhparam:
+      path: /etc/ssl/certs/dhparam.pem
+      size: 2048
+      state: present
+  
+  - name: Put virtual ssl host
+    ansible.builtin.template:
+      src: "templates/{{ domain_name }}.conf.j2"
+      dest: "/etc/nginx/sites-available/{{ domain_name }}.conf"
+      owner: root
+      group: root
+      mode: 0644
+    notify: reload nginx
+  
+  - name: Add letsencrypt autoupdate
+    ansible.builtin.cron:
+      name: update letsencrypt certificate
+      minute: '0'
+      hour: '4'
+      weekday: '1'
+      job: letsencrypt renew && service nginx reload
+  become: yes
+
+- name: Helper to revoke the certificate
+  debug:
+    msg: "{{ item }}"
+  loop:
+  - "sudo certbot revoke --cert-path /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem --key-path /etc/letsencrypt/live/{{ domain_name }}/privkey.pem"
+  - "sudo certbot revoke --cert-path {{ efs_mountpath }}/letsencrypt/live/{{ domain_name }}/fullchain.pem --key-path {{ efs_mountpath }}/letsencrypt/live/{{ domain_name }}/privkey.pem"

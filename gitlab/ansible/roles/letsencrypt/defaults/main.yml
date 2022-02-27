@@ -1,0 +1,4 @@
+---
+domain_name: some.example.com
+letsencrypts_email: bar@baz.foo
+efs_mountpath: /mnt/efs
