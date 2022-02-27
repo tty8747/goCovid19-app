@@ -2,6 +2,7 @@
 
 ## First off, we need to create an infrastructure by Terraform
 
+- `terraform init`
 - `terraform plan`
 - `terraform apply --auto-approve`
 
