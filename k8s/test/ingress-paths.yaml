@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-paths
+
+spec:
+  rules:
+  - host: contour.ubukubu.ru
+    http:
+      paths:
+      - path: "/page1"
+        backend:
+          serviceName: tomcat
+          servicePort: 8080
