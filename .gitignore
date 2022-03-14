@@ -38,7 +38,7 @@ tags
 [._]*.un~
 
 ### Manual ###
-k8s/iam-policy.json
+k8s/iam_policy.json
 
 ### Terraform ###
 # Local .terraform directories

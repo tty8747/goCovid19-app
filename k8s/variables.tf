@@ -32,5 +32,5 @@ variable "k8s_name" {
 
 variable "openid_list" {
   type    = list(string)
-  default = ["26622223445.some.com", "sts.amazonaws.com"]
+  default = ["sts.amazonaws.com"]
 }
