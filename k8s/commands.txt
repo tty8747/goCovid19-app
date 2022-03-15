@@ -1,0 +1,30 @@
+# vars
+APPNAME="2048" \
+  && NAMESPACE="game-${APPNAME}" \
+  && IMAGE="public.ecr.aws/l6m2t8p7/docker-${APPNAME}:latest" \
+  && REPLICAS="5" \
+  && DEPLOYMENT="deployment-${APPNAME}" \
+  && SERVICE="service-${APPNAME}" \
+  && INGRESS="ingress-${APPNAME}"
+
+
+
+# manifests
+
+# create
+kubectl create namespace "${NAMESPACE}"  --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl create deployment "${DEPLOYMENT}" --image "${IMAGE}" --port 80 --replicas "$REPLICAS" --namespace "${NAMESPACE}"  --dry-run=client -o yaml | kubectl apply -f -
+
+# kubectl scale deployment "$APPNAME"  --replicas 3  --dry-run=client -o yaml
+
+kubectl expose deployment "${DEPLOYMENT}" --name "${SERVICE}" --port 80 --target-port 80 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+# https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/guide/ingress/annotations/#load-balancer-name
+kubectl create ingress "${INGRESS}" --namespace="${NAMESPACE}" --annotation kubernetes.io/ingress.class=alb --annotation alb.ingress.kubernetes.io/scheme=internet-facing --annotation alb.ingress.kubernetes.io/load-balancer-name=alb-eks-myk8s-OBs0 --rule="app.ubukubu.ru/*=service-2048:80" --dry-run=client -o yaml | kubectl apply -f -
+
+# delete
+kubectl delete ingress "${INGRESS}" --namespace="${NAMESPACE}" \
+  && kubectl delete service "${SERVICE}" --namespace="${NAMESPACE}" \
+  && kubectl delete deployment "${DEPLOYMENT}" --namespace="${NAMESPACE}" \
+  && kubectl get all --namespace="${NAMESPACE}"
