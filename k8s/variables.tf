@@ -34,3 +34,21 @@ variable "openid_list" {
   type    = list(string)
   default = ["sts.amazonaws.com"]
 }
+
+variable "domain" {
+  type    = string
+  default = "ubukubu.ru"
+}
+
+variable "cname_record" {
+  type    = string
+  default = "app"
+}
+
+variable "cloudflare_email" {
+  type = string
+}
+
+variable "cloudflare_api_key" {
+  type = string
+}
