@@ -2,9 +2,7 @@ resource "aws_acm_certificate" "app" {
   domain_name       = local.fqdn
   validation_method = "DNS"
 
-  subject_alternative_names = [
-    "www.${local.fqdn}",
-  ]
+  subject_alternative_names = [for i in var.environments : "${i}.${local.fqdn}" ]
 
 }
 

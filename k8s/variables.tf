@@ -61,3 +61,8 @@ variable "db_set" {
     "dbpass" = "somepass"
   }
 }
+
+variable "environments" {
+  type = list(string)
+  default = ["test", "dev", "release"]
+}
