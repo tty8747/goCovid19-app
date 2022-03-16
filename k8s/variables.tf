@@ -52,3 +52,12 @@ variable "cloudflare_email" {
 variable "cloudflare_api_key" {
   type = string
 }
+
+variable "db_set" {
+  type = map(string)
+  default = {
+    "dbname" = "test"
+    "dbuser" = "someuser"
+    "dbpass" = "somepass"
+  }
+}

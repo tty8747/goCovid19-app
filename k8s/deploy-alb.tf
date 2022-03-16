@@ -13,7 +13,7 @@ resource "aws_lb" "ek8s" {
     "elbv2.k8s.aws/cluster"    = "eks-myk8s-OBs0"
   }
 
-  # lifecycle {
-  #   create_before_destroy = true
-  # }
+  lifecycle {
+    ignore_changes = all
+  }
 }
