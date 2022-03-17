@@ -66,3 +66,8 @@ variable "environments" {
   type = list(string)
   default = ["test", "dev", "release"]
 }
+
+variable "app_name" {
+  type = string
+  default = "gocovid"
+}
