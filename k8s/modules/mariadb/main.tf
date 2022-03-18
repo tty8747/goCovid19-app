@@ -8,11 +8,11 @@ resource "aws_db_instance" "this" {
   username              = var.db_user
   password              = var.db_pass
   # parameter_group_name  = "this.${var.db_engine}.${var.db_engineVer}"
-  skip_final_snapshot = true
-  availability_zone   = var.av_zone
+  skip_final_snapshot    = true
+  availability_zone      = var.av_zone
   vpc_security_group_ids = [aws_security_group.this.id]
-  db_subnet_group_name = aws_db_subnet_group.this.id
-  
+  db_subnet_group_name   = aws_db_subnet_group.this.id
+
 }
 
 resource "aws_db_subnet_group" "this" {
