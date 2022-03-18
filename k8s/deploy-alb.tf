@@ -10,7 +10,7 @@ resource "aws_lb" "ek8s" {
     Name                       = "alb-${local.cluster_name}"
     "ingress.k8s.aws/resource" = "LoadBalancer"
     "ingress.k8s.aws/stack"    = "game-2048/ingress-2048"
-    "elbv2.k8s.aws/cluster"    = "eks-myk8s-OBs0"
+    "elbv2.k8s.aws/cluster"    = local.cluster_name
   }
 
   lifecycle {
