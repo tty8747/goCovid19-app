@@ -63,11 +63,11 @@ variable "db_set" {
 }
 
 variable "environments" {
-  type = list(string)
+  type    = list(string)
   default = ["test", "dev", "release"]
 }
 
 variable "app_name" {
-  type = string
+  type    = string
   default = "gocovid"
 }

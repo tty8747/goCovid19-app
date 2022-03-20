@@ -65,3 +65,36 @@ resource "aws_eks_node_group" "ek8s" {
     "k8s.io/cluster-autoscaler/enabled"               = "TRUE"
   }
 }
+
+# https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html
+data "template_file" "autoscaling_yaml" {
+  template = templatefile("${path.module}/cluster-autoscaler-autodiscover.yml.tftpl",
+    {
+      account_id                         = data.aws_caller_identity.current.account_id
+      cluster_name                       = local.cluster_name
+      amazon_eks_cluster_autoscaler_role = "${local.cluster_name}-AmazonEKSClusterAutoscalerRole"
+    }
+  )
+}
+
+data "kubectl_file_documents" "autoscaling_yaml" {
+  content = data.template_file.autoscaling_yaml.rendered
+}
+
+resource "kubectl_manifest" "autoscaling_yaml" {
+  for_each  = data.kubectl_file_documents.autoscaling_yaml.manifests
+  yaml_body = each.value
+  depends_on = [
+    data.kubectl_file_documents.autoscaling_yaml,
+    data.template_file.autoscaling_yaml
+  ]
+}
+
+# resource "kubectl_manifest" "autoscaling_yaml" {
+#   count     = length(data.kubectl_file_documents.autoscaling_yaml.documents)
+#   yaml_body = element(data.kubectl_file_documents.autoscaling_yaml.documents, count.index)
+# }
+
+#   resource "kubectl_manifest" "autoscaling_yaml" {
+#     yaml_body = data.template_file.autoscaling_yaml.rendered
+#   }

@@ -1,5 +1,5 @@
 provider "aws" {
-  alias  = "ireland"
+  alias = "ireland"
   # This resource can only be used with us-east-1 region.
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecrpublic_repository#catalog_data
   region = "us-east-1"
@@ -11,8 +11,8 @@ locals {
 
 resource "aws_ecrpublic_repository" "goCovid" {
 
-  count = length(local.repo_name)
-  provider = aws.ireland
+  count           = length(local.repo_name)
+  provider        = aws.ireland
   repository_name = local.repo_name[count.index]
 
   catalog_data {
@@ -21,13 +21,13 @@ resource "aws_ecrpublic_repository" "goCovid" {
     description       = "https://github.com/tty8747/goCovid19"
     logo_image_blob   = filebase64("image.png")
     operating_systems = ["Linux"]
-    usage_text  = "docker pull <repo_url>/local.repo_name[count.index]"
+    usage_text        = "docker pull <repo_url>/local.repo_name[count.index]"
   }
 }
 
 resource "aws_ecrpublic_repository_policy" "goCovid" {
-  count = length(local.repo_name)
-  provider = aws.ireland
+  count           = length(local.repo_name)
+  provider        = aws.ireland
   repository_name = aws_ecrpublic_repository.goCovid[count.index].repository_name
 
   policy = <<EOF
@@ -61,7 +61,7 @@ EOF
 }
 
 data "aws_ecr_authorization_token" "token" {
-  count = length(local.repo_name)
+  count       = length(local.repo_name)
   registry_id = aws_ecrpublic_repository.goCovid[count.index].registry_id
 }
 

@@ -8,5 +8,5 @@ resource "cloudflare_record" "cname_record" {
   value   = aws_lb.ek8s.dns_name
   type    = "CNAME"
   ttl     = 1
-  proxied = true
+  proxied = false
 }

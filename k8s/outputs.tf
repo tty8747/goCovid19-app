@@ -13,3 +13,7 @@ output "upgrade-kube-config-command" {
 output "db_endpoint" {
   value = module.db.db_endpoint
 }
+
+output "alb_name" {
+  value = aws_lb.ek8s.name
+}

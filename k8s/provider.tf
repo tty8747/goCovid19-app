@@ -20,7 +20,23 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 3.0"
     }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.13.1"
+    }
+    #   template = {
+    #     source  = "hashicorp/template"
+    #     version = "2.2.0"
+    #   }
   }
+}
+
+# provider "template" {}
+
+provider "kubectl" {
+  host                   = aws_eks_cluster.ek8s.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.ek8s.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.ek8s.token
 }
 
 provider "tls" {}
