@@ -46,6 +46,7 @@ kubectl port-forward "${POD}" --namespace="${NAMESPACE}" 8080:80
 docker run --rm --net=host loadimpact/loadgentest-wrk -c 100 -t 100 -d 5m http://127.0.0.1:8080
 
 docker run --rm --net=host loadimpact/loadgentest-wrk -c 100 -t 100 -d 5m http://app.ubukubu.ru
+docker run --rm --net=host loadimpact/loadgentest-wrk -c 1000 -t 1000 -d 15m http://app.ubukubu.ru
 
 
 # delete

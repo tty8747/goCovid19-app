@@ -1,6 +1,8 @@
 resource "random_string" "suffix" {
-  length  = 4
+  length  = 2
   special = false
+  lower   = true
+  upper   = false
 }
 
 locals {

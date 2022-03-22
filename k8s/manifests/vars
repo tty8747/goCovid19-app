@@ -5,4 +5,4 @@ APPNAME="2048" \
   && DEPLOYMENT="deployment-${APPNAME}" \
   && SERVICE="service-${APPNAME}" \
   && INGRESS="ingress-${APPNAME}" \
-  && LOADBALANCER_NAME=alb-eks-myk8s-v7
+  && LOADBALANCER_NAME=alb-eks-myk8s-kz
