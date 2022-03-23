@@ -18,6 +18,8 @@ spec:
       labels:
         app: deployment-2048
     spec:
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: eks-myk8s-7y_node_group
       containers:
       - image: public.ecr.aws/l6m2t8p7/docker-2048:latest
         name: docker-2048
