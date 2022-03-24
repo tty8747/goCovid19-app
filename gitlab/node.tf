@@ -44,7 +44,8 @@ resource "aws_eip_association" "gitlab" {
 resource "aws_instance" "gitlab" {
   ami = data.aws_ami.ubuntu20.id
   # t3a.medium = 0.0432 USD per Hour = 1,0368 USD per Day = 32,1408 USD per Month = 385,6896 per Year
-  instance_type = "t3a.medium"
+  # t2.xlarge = 0.2144
+  instance_type = "t2.xlarge"
   key_name      = aws_key_pair.homepc.id
   user_data     = data.template_file.init.rendered
 
