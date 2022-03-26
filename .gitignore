@@ -40,6 +40,9 @@ tags
 ### Ansible ###
 *.retry
 
+### Manual ###
+gitlab/ansible/inventory/
+
 ### Terraform ###
 # Local .terraform directories
 **/.terraform/*
