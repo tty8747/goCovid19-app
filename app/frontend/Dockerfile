@@ -2,7 +2,7 @@ FROM golang:1.17.6-alpine3.15 AS build
 
 WORKDIR /app
 
-ARG CGO_ENABLED=1 \
+ARG CGO_ENABLED=0 \
     GOARCH=amd64 \
     GOOS=linux \
     BINARY_NAME=web \
