@@ -1,0 +1,60 @@
+# vars
+APPNAME="2048" \
+  && NAMESPACE="game-${APPNAME}" \
+  && IMAGE="public.ecr.aws/l6m2t8p7/docker-${APPNAME}:latest" \
+  && REPLICAS="1" \
+  && DEPLOYMENT="deployment-${APPNAME}" \
+  && SERVICE="service-${APPNAME}" \
+  && INGRESS="ingress-${APPNAME}" \
+  && LOADBALANCER_NAME=alb-eks-myk8s-k3qv
+
+
+# manifests
+
+# get node selectors
+kubectl get nodes --show-labels
+
+# create
+kubectl create namespace "${NAMESPACE}"  --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl create deployment "${DEPLOYMENT}" --image "${IMAGE}" --port 80 --replicas "$REPLICAS" --namespace "${NAMESPACE}"  --dry-run=client -o yaml | kubectl apply -f -
+# need to set resourses, that scaling can work
+
+# kubectl scale deployment "$APPNAME"  --replicas 3  --dry-run=client -o yaml
+
+kubectl expose deployment "${DEPLOYMENT}" --name "${SERVICE}" --port 80 --target-port 80 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+# https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/guide/ingress/annotations/#load-balancer-name
+# kubectl create ingress "${INGRESS}" --namespace="${NAMESPACE}" --annotation kubernetes.io/ingress.class=alb --annotation alb.ingress.kubernetes.io/scheme=internet-facing --annotation alb.ingress.kubernetes.io/load-balancer-name="${LOADBALANCER_NAME}" --rule="app.ubukubu.ru/*=service-2048:80" --dry-run=client -o yaml | kubectl apply -f -
+
+# kubectl create ingress "${INGRESS}" --namespace="${NAMESPACE}" --annotation kubernetes.io/ingress.class=alb --annotation alb.ingress.kubernetes.io/scheme=internet-facing --annotation alb.ingress.kubernetes.io/load-balancer-name="${LOADBALANCER_NAME}" --rule="/*=service-2048:80" --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl create ingress "${INGRESS}" --namespace="${NAMESPACE}" --annotation kubernetes.io/ingress.class=alb --annotation alb.ingress.kubernetes.io/scheme=internet-facing --annotation alb.ingress.kubernetes.io/load-balancer-name="${LOADBALANCER_NAME}" --annotation alb.ingress.kubernetes.io/target-group-attributes=stickiness.enabled=true --annotation stickiness.lb_cookie.duration_seconds=60 --annotation alb.ingress.kubernetes.io/target-type=ip --rule="/*=service-2048:80" --dry-run=client -o yaml | kubectl apply -f -
+
+curl -D - -s "http://$(kubectl get ingresses -n game-2048 | awk -F' ' '{print $4}' | grep -v ADDRESS)"
+curl -D - -s "http://app.ubukubu.ru"
+
+# autoscalling
+kubectl autoscale deployment "${DEPLOYMENT}" --namespace="${NAMESPACE}" --cpu-percent=10 --min=1 --max=10 --dry-run=client -o yaml | kubectl apply -f -
+# need to add namespace into metadata!
+
+kubectl get hpa --namespace="${NAMESPACE}"
+kubectl get --raw "/apis/metrics.k8s.io/" | jq
+POD=$(kubectl get pods --namespace="${NAMESPACE}" | grep "${DEPLOYMENT}" | awk -F ' ' '{ print $1 }' | head -n1)
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/${NAMESPACE}/pods/"${POD}" | jq
+
+watch -n 2 "kubectl get hpa --namespace="${NAMESPACE}" "${DEPLOYMENT}"
+
+kubectl port-forward "${POD}" --namespace="${NAMESPACE}" 8080:80
+docker run --rm --net=host loadimpact/loadgentest-wrk -c 100 -t 100 -d 5m http://127.0.0.1:8080
+
+docker run --rm --net=host loadimpact/loadgentest-wrk -c 100 -t 100 -d 5m http://app.ubukubu.ru
+docker run --rm --net=host loadimpact/loadgentest-wrk -c 1000 -t 1000 -d 15m http://app.ubukubu.ru
+
+
+# delete
+kubectl delete ingress "${INGRESS}" --namespace="${NAMESPACE}" \
+  && kubectl delete service "${SERVICE}" --namespace="${NAMESPACE}" \
+  && kubectl delete deployment "${DEPLOYMENT}" --namespace="${NAMESPACE}" \
+  && kubectl delete hpa "${DEPLOYMENT}" --namespace="${NAMESPACE}" \
+  && kubectl get all --namespace="${NAMESPACE}"

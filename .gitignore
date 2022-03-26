@@ -40,9 +40,6 @@ tags
 ### Ansible ###
 *.retry
 
-### Manual ###
-gitlab/ansible/inventory/
-
 ### Terraform ###
 # Local .terraform directories
 **/.terraform/*
@@ -79,3 +76,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+### Manual ###
+k8s/iam_policy.json
+gitlab/ansible/inventory/

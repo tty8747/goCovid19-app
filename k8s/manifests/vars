@@ -1,0 +1,8 @@
+APPNAME="2048" \
+  && NAMESPACE="game-${APPNAME}" \
+  && IMAGE="public.ecr.aws/l6m2t8p7/docker-${APPNAME}:latest" \
+  && REPLICAS="1" \
+  && DEPLOYMENT="deployment-${APPNAME}" \
+  && SERVICE="service-${APPNAME}" \
+  && INGRESS="ingress-${APPNAME}" \
+  && LOADBALANCER_NAME=alb-eks-myk8s-kz
