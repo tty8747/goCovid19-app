@@ -48,8 +48,10 @@ provider "cloudflare" {
 
 provider "aws" {
   region                   = var.region
-  shared_credentials_files = ["~/.aws/credentials"]
-  profile                  = "tty8747"
+# shared_credentials_files = ["~/.aws/credentials"]
+# profile                  = "tty8747"
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
 }
 
 provider "null" {}

@@ -1,3 +1,11 @@
+variable aws_access_key_id {
+  type = string
+}
+
+variable aws_secret_access_key {
+  type = string
+}
+
 variable "id_rsa_path" {
   type        = string
   default     = "~/.ssh/id_rsa.pub"
