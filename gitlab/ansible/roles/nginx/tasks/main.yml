@@ -34,7 +34,7 @@
   
   - name: Put virtual hosts
     ansible.builtin.template:
-      src: "templates/{{ conf_name }}.j2"
+      src: templates/site.enabled.conf.j2
       dest: "/etc/nginx/sites-available/{{ conf_name }}"
       owner: root
       group: root

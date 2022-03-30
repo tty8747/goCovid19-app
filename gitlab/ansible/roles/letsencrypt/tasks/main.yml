@@ -42,7 +42,7 @@
   
   - name: Put virtual temp ssl host
     ansible.builtin.template:
-      src: "templates/temp.{{ domain_name }}.conf.j2"
+      src: templates/temp.site.enabled.conf.j2
       dest: "/etc/nginx/sites-available/{{ domain_name }}.conf"
       owner: root
       group: root
@@ -75,7 +75,7 @@
   
   - name: Put virtual ssl host
     ansible.builtin.template:
-      src: "templates/{{ domain_name }}.conf.j2"
+      src: templates/site.enabled.conf.j2
       dest: "/etc/nginx/sites-available/{{ domain_name }}.conf"
       owner: root
       group: root
