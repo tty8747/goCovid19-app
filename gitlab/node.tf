@@ -49,6 +49,11 @@ resource "aws_instance" "gitlab" {
   key_name      = aws_key_pair.homepc.id
   user_data     = data.template_file.init.rendered
 
+  root_block_device {
+    volume_size = "32"
+    volume_type = "standard"
+  }
+
   network_interface {
     network_interface_id = aws_network_interface.gitlab.id
     device_index         = 0
