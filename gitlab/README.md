@@ -26,3 +26,28 @@
   `terraform apply -var="subnet_zone=eu-central-1c"`
 - Ensure that `remove_gitlab_data` variable is false if you want to save gitlab data:  
   `ansible-playbook -i ansible/inventory/hosts.yml ansible/main.yml`
+
+## Runner
+
+### Start runner
+```bash
+docker run -d --name gitlab-runner --restart always \
+     -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     gitlab/gitlab-runner:latest
+```
+
+### Register runner
+```bash
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token xxxxxxxxxxxxxx65oxH --executor docker --description "Lab runner" --docker-image ubuntu:latest --run-untagged
+```
+
+### List runners
+```bash
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner list
+```
+
+### Register runner
+```bash
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner unregister --all-runners
+```
