@@ -39,7 +39,8 @@ docker run -d --name gitlab-runner --restart always \
 
 ### Register runner
 ```bash
-docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token xxxxxxxxxxxxxx65oxH --executor docker --description "Lab runner" --docker-image ubuntu:latest --run-untagged
+GITLAB_REGISTRATION_TOKEN=xxxxxxxxxxxxxx65oxH
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token GITLAB_REGISTRATION_TOKEN --executor docker --description "aws runner" --docker-image ubuntu:latest --run-untagged
 ```
 
 ### List runners
