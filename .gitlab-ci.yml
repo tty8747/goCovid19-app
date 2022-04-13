@@ -47,6 +47,20 @@ backend tests:
     reports:
       junit: ${BACKEND_ROOT}/report.xml
 
+## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
+frontend tests:
+  stage: test
+  image: golang:stretch
+  before_script:
+    - cd ${FRONTEND_ROOT}
+  script:
+    - go install gotest.tools/gotestsum@latest
+    - gotestsum --junitfile report.xml --format testname
+  artifacts:
+    when: always
+    reports:
+      junit: ${FRONTEND_ROOT}/report.xml
+
 frontend build:
   stage: build
   image: docker:19.03.12
