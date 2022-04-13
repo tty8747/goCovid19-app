@@ -39,12 +39,25 @@ docker run -d --name gitlab-runner --restart always \
 
 ### Register runner
 ```bash
-GITLAB_REGISTRATION_TOKEN=xxxxxxxxxxxxxx65oxH
+GITLAB_REGISTRATION_TOKEN="xxxxxxxxxxxxxx65oxH"
 
-docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token ${GITLAB_REGISTRATION_TOKEN} --executor docker --description "aws runner" --docker-image ubuntu:latest --run-untagged
+# The Docker untagged executer
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token "${GITLAB_REGISTRATION_TOKEN}" --executor docker --description "aws runner" --docker-image ubuntu:latest --run-untagged
 
+# The Docker executor with some tags
 RUNNER_TAG_LIST="golang, go"
-docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token ${GITLAB_REGISTRATION_TOKEN} --executor docker --description "hetzner runner" --tag-list ${RUNNER_TAG_LIST} --docker-image ubuntu:latest
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ --registration-token "${GITLAB_REGISTRATION_TOKEN}" --executor docker --description "hetzner runner" --tag-list "${RUNNER_TAG_LIST}" --docker-image ubuntu:latest
+
+# The Docker executor with Docker socket binding
+# https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-the-docker-executor-with-docker-socket-binding
+RUNNER_TAG_LIST="docker.sock"
+
+docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+     gitlab/gitlab-runner register -n --url https://gitlab.ubukubu.ru/ \
+     --registration-token "${GITLAB_REGISTRATION_TOKEN}" --executor docker \
+     --docker-image "docker:19.03.12" --tag-list "${RUNNER_TAG_LIST}" \
+     --description "docker sock runner" \
+     --docker-volumes /var/run/docker.sock:/var/run/docker.sock
 ```
 
 ### List runners
