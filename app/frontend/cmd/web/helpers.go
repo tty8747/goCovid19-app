@@ -30,9 +30,9 @@ func (app *application) notAllowed(w http.ResponseWriter) {
 	app.clientErr(w, http.StatusMethodNotAllowed)
 }
 
-func (app *application) paramsReq(w http.ResponseWriter) {
-	app.clientErr(w, http.StatusBadRequest)
-}
+// func (app *application) paramsReq(w http.ResponseWriter) {
+// 	app.clientErr(w, http.StatusBadRequest)
+// }
 
 func (app *application) buildLink(r *http.Request, alias string, hostname string, port string, apiVers string) (string, bool) {
 	app.DateFrom = r.FormValue("dateFrom")
@@ -53,7 +53,6 @@ func (app *application) buildLink(r *http.Request, alias string, hostname string
 
 // makes map using countries library
 func (app *application) getCountryNames(list []string) map[string]string {
-
 	query := gountries.New()
 	m := make(map[string]string)
 
@@ -61,19 +60,19 @@ func (app *application) getCountryNames(list []string) map[string]string {
 		this, err := query.FindCountryByAlpha(elem)
 		if err != nil {
 			if elem != "RKS" {
-				m[string(elem)] = elem
+				m[elem] = elem
 			} else {
 				m[string("Kosovo")] = elem
 			}
 		} else {
-			m[string(string(this.Name.Common))] = elem
+			m[this.Name.Common] = elem
 		}
 	}
 	return m
 }
 
 // get api state
-func (app *application) getApiState() bool {
+func (app *application) getAPIState() bool {
 	alias := "state"
 	connString := fmt.Sprintf("http://%s:%s/%s/%s", *app.api.hostname, *app.api.port, *app.api.apiVers, alias)
 	response, err := http.Get(connString)
@@ -90,7 +89,8 @@ func (app *application) getApiState() bool {
 	// log.Printf("Is api blocked: %s", string(body))
 	boolValue, err := strconv.ParseBool(string(body))
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		app.errLog.Fatalln(err.Error())
 	}
 	return boolValue
 }

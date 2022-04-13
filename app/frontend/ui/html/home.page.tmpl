@@ -65,10 +65,10 @@
             {{ if not .Message }}
               {{ range .Data }}
                 <tr>
-                  <td>{{ .Data_value }}</td>
+                  <td>{{ .DataValue }}</td>
                   <td>{{ .Confirmed }}</td>
                   <td>{{ .Deaths }}</td>
-                  <td>{{ .Stringency_actual }}</td>
+                  <td>{{ .StringencyActual }}</td>
                   <td>{{ .Stringency }}</td>
                 </tr>
               {{ else }}

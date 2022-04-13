@@ -29,7 +29,7 @@ frontend lint:
     - cd ${FRONTEND_ROOT}
   artifacts:
     reports:
-      codequality: ${FRONTEND_ROOT}/gl-code-quality-report.xml
+      junit: ${FRONTEND_ROOT}/gl-code-quality-report.xml
     paths:
       - ${FRONTEND_ROOT}/gl-code-quality-report.xml
 

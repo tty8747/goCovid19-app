@@ -21,7 +21,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if app.block = app.getApiState(); app.block {
+	if app.block = app.getAPIState(); app.block {
 		app.Message = "Database is updating. Wait for a while ..."
 	}
 
@@ -46,19 +46,15 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.errLog.Println(err.Error())
 		app.serverErr(w, err)
 	}
-
 }
 
 func (app *application) query(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost || r.Method == http.MethodGet {
-
-		if app.block = app.getApiState(); app.block {
+		if app.block = app.getAPIState(); app.block {
 			app.Message = "Database is updating. Wait for a while ..."
 		} else {
-
 			connString, ok := app.buildLink(r, "data", *app.api.hostname, *app.api.port, *app.api.apiVers)
 			if ok {
-
 				// --- start of data preparation
 				// gets raw data
 				log.Println(connString)
@@ -105,7 +101,6 @@ func (app *application) query(w http.ResponseWriter, r *http.Request) {
 			app.errLog.Println(err.Error())
 			app.serverErr(w, err)
 		}
-
 	} else {
 		app.notAllowed(w)
 		return
@@ -116,7 +111,7 @@ func (app *application) refreshData(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.notAllowed(w)
 		return
-	} else if app.block = app.getApiState(); app.block {
+	} else if app.block = app.getAPIState(); app.block {
 		app.Message = "Database is updating. Wait for a while ..."
 	} else {
 		alias := "refresh_data"
