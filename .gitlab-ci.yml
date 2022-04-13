@@ -22,6 +22,8 @@ backend lint:
   artifacts:
     reports:
       junit: ${BACKEND_ROOT}/gl-code-quality-report.xml
+    paths:
+      - ${BACKEND_ROOT}/gl-code-quality-report.xml
 
 frontend lint:
   extends: .lint
