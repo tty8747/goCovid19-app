@@ -47,7 +47,7 @@ func genListOfDates() (listOfDates []string) {
 
 // Makes the link
 func makeLink(start, end string) string {
-	var link string = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
+	var link = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range"
 	return fmt.Sprintf("%s/%s/%s", link, start, end)
 }
 
@@ -76,12 +76,12 @@ func getListOfCoutries(body []byte) []string {
 	if err != nil {
 		panic(err)
 	}
-	return []string(c.Countries)
+	return c.Countries
 }
 
 // Remove unnecessary from json (jq)
-func op(dateId, countryId string, body []byte) string {
-	op, err := jq.Parse(fmt.Sprintf(".data.%s.%s", dateId, countryId))
+func op(dateID, countryID string, body []byte) string {
+	op, err := jq.Parse(fmt.Sprintf(".data.%s.%s", dateID, countryID))
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +112,6 @@ func collectData(b []byte) (obj Obj) {
 }
 
 func (app *application) parser() {
-
 	// generates a list of dates
 	app.listOfDates = nil
 	app.listOfDates = genListOfDates()

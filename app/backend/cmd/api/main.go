@@ -34,7 +34,6 @@ func main() {
 	flag.Parse()
 
 	if *getData {
-
 		// Migrations
 		// if err := database.Migrate(app.settings.migrationDir, app.dbSettings); err != nil {
 		// 	log.Println(err)
@@ -62,8 +61,8 @@ func main() {
 }
 
 type application struct {
-	errLog      *log.Logger
-	infoLog     *log.Logger
+	errLog *log.Logger
+	// infoLog     *log.Logger
 	listOfDates []string
 	cList       []string // country list
 	listObj     []Obj
@@ -72,16 +71,16 @@ type application struct {
 	block       bool
 }
 
-// Makes struct for selected object
+// Obj is made for selected object
 type Obj struct {
-	DateValue             string  `json:"date_value"`
-	CountryCode           string  `json:"country_code"`
-	Confirmed             int     `json:"confirmed"`
-	Deaths                int     `json:"deaths"`
-	StringencyActual      float64 `json:"stringency_actual"`
-	Stringency            float64 `json:"stringency"`
-	StringencyLegacy      float64 `json:"stringency_legacy"`
-	StringencyLegacy_disp float64 `json:"stringency_legacy_disp"`
+	DateValue            string  `json:"date_value"`
+	CountryCode          string  `json:"country_code"`
+	Confirmed            int     `json:"confirmed"`
+	Deaths               int     `json:"deaths"`
+	StringencyActual     float64 `json:"stringency_actual"`
+	Stringency           float64 `json:"stringency"`
+	StringencyLegacy     float64 `json:"stringency_legacy"`
+	StringencyLegacyDisp float64 `json:"stringency_legacy_disp"`
 }
 
 type appSettings struct {

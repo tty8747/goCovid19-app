@@ -42,7 +42,7 @@ func TestFullParse(t *testing.T) {
 			// skip null objects
 			a := op(date, country, rawData)
 			if a == "null" {
-				idx += 1
+				idx++
 				continue
 			}
 			// app.listObj = append(app.listObj, collectData([]byte(a)))
@@ -53,7 +53,7 @@ func TestFullParse(t *testing.T) {
 			if idx == len(cList)-1 {
 				idx = 0
 			} else {
-				idx += 1
+				idx++
 			}
 		}
 	}

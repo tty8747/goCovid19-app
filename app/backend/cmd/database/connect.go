@@ -1,3 +1,4 @@
+// Package database for goCovid app
 package database
 
 import (
@@ -5,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 
+	// Connect mysql driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose"
 )
 
+// Settings of database
 type Settings struct {
 	Host  string
 	Port  string
@@ -18,16 +21,16 @@ type Settings struct {
 	Reset bool
 }
 
+// GenTable is created to parse json
 type GenTable struct {
-	Data_value        string  `json:"data_value"`
-	Confirmed         int     `json:"confirmed"`
-	Deaths            int     `json:"deaths"`
-	Stringency_actual float32 `json:"stringency_actual"`
-	Stringency        float32 `json:"stringency"`
+	DataValue        string  `json:"data_value"`
+	Confirmed        int     `json:"confirmed"`
+	Deaths           int     `json:"deaths"`
+	StringencyActual float32 `json:"stringency_actual"`
+	Stringency       float32 `json:"stringency"`
 }
 
 func connect(settings Settings) (db *sql.DB, err error) {
-
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", settings.User, settings.Pass, settings.Host, settings.Port, settings.Name)
 
 	db, err = sql.Open("mysql", dsn)
@@ -37,8 +40,8 @@ func connect(settings Settings) (db *sql.DB, err error) {
 	return db, nil
 }
 
+// Migrate is exported func to use it in main module
 func Migrate(path string, s Settings) error {
-
 	db, err := connect(s)
 	if err != nil {
 		return err
@@ -61,8 +64,8 @@ func Migrate(path string, s Settings) error {
 	return nil
 }
 
+// AddData is exported to use it in main module
 func AddData(query string, s Settings) error {
-
 	db, err := connect(s)
 	if err != nil {
 		return err
@@ -76,8 +79,8 @@ func AddData(query string, s Settings) error {
 	return nil
 }
 
-func ReturnId(query string, s Settings) (id int, err error) {
-
+// ReturnID is exported to use it in main module
+func ReturnID(query string, s Settings) (id int, err error) {
 	db, err := connect(s)
 	if err != nil {
 		return -1, err
@@ -88,14 +91,15 @@ func ReturnId(query string, s Settings) (id int, err error) {
 	err = row.Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return -2, errors.New("Zero rows found")
-		} else {
-			return -3, err
+			return -2, errors.New("zero rows found")
+			//	} else {
+			//		return -3, err
 		}
 	}
 	return id, nil
 }
 
+// ReturnMulti is exported to use it in main module
 func ReturnMulti(query string, s Settings) (list []GenTable, err error) {
 	db, err := connect(s)
 	if err != nil {
@@ -108,7 +112,7 @@ func ReturnMulti(query string, s Settings) (list []GenTable, err error) {
 		return nil, err
 	}
 	for rows.Next() {
-		err := rows.Scan(&genTable.Data_value, &genTable.Confirmed, &genTable.Deaths, &genTable.Stringency_actual, &genTable.Stringency)
+		err := rows.Scan(&genTable.DataValue, &genTable.Confirmed, &genTable.Deaths, &genTable.StringencyActual, &genTable.Stringency)
 		if err != nil {
 			return nil, err
 		}
@@ -117,13 +121,14 @@ func ReturnMulti(query string, s Settings) (list []GenTable, err error) {
 	return list, nil
 }
 
+// ReturnBlockValue is exported to use it in main module
 func ReturnBlockValue(query string, s Settings) (b bool, err error) {
 	db, err := connect(s)
 	if err != nil {
 		return true, err
 	}
 	defer db.Close()
-	//Retrieve data
+	// Retrieve data
 	row := db.QueryRow(query)
 	if err = row.Scan(&b); err != nil {
 		return true, err

@@ -7,7 +7,7 @@ import (
 	"github.com/tty8747/goCovid19/cmd/database"
 )
 
-//set block value
+// Set block value
 func (app *application) setBlock(b bool) error {
 	if err := database.AddData("DELETE FROM `block`;", app.dbSettings); err != nil {
 		return err
@@ -19,9 +19,9 @@ func (app *application) setBlock(b bool) error {
 	return nil
 }
 
-//purge all tables
+// Purge all tables
 func (app *application) purgeTables() error {
-	var queryPurge []string = []string{"DELETE FROM cases;", "DELETE FROM dates;", "DELETE FROM countries;"}
+	var queryPurge = []string{"DELETE FROM cases;", "DELETE FROM dates;", "DELETE FROM countries;"}
 	for _, elem := range queryPurge {
 		log.Println(elem)
 		if err := database.AddData(elem, app.dbSettings); err != nil {
@@ -59,15 +59,15 @@ func (app *application) insertData() {
 		queryCountries := fmt.Sprintf("select id from countries where code='%s';", elem.CountryCode)
 		queryDates := fmt.Sprintf("select id from dates where date_value='%s';", elem.DateValue)
 
-		countryId, err := database.ReturnId(queryCountries, app.dbSettings)
+		countryID, err := database.ReturnID(queryCountries, app.dbSettings)
 		if err != nil {
 			app.errLog.Fatal(err)
 		}
-		dateId, err := database.ReturnId(queryDates, app.dbSettings)
+		dateID, err := database.ReturnID(queryDates, app.dbSettings)
 		if err != nil {
 			app.errLog.Fatal(err)
 		}
-		query := fmt.Sprintf("INSERT INTO `cases`(`country_id`,`date_id`,`confirmed`,`deaths`,`stringency_actual`,`stringency`) VALUES ('%d','%d',%d,%d,%f,%f);", countryId, dateId, elem.Confirmed, elem.Deaths, elem.StringencyActual, elem.Stringency)
+		query := fmt.Sprintf("INSERT INTO `cases`(`country_id`,`date_id`,`confirmed`,`deaths`,`stringency_actual`,`stringency`) VALUES ('%d','%d',%d,%d,%f,%f);", countryID, dateID, elem.Confirmed, elem.Deaths, elem.StringencyActual, elem.Stringency)
 
 		log.Println(query)
 		if err := database.AddData(query, app.dbSettings); err != nil {

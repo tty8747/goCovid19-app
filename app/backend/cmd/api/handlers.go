@@ -38,7 +38,9 @@ curl -D - -s -X GET "http://%s/v1/state"
 curl -D - -s -X GET "http://%s/v1/refresh_data"
 curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"
 `, hostname, r.Host, r.Host, r.Host, r.Host, r.Host)
-	fmt.Fprintf(w, resp)
+
+	// fmt.Fprintf(w, resp)
+	w.Write([]byte(resp))
 }
 
 func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +64,7 @@ func (app *application) refresh(w http.ResponseWriter, r *http.Request) {
 	// Insert data
 	app.insertData()
 
-	//specify HTTP status code
+	// Specify HTTP status code
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "ok")
 }
@@ -76,7 +78,7 @@ func (app *application) response(w http.ResponseWriter, r *http.Request) {
 
 	// Get query params
 	vars := make(map[string]string)
-	var varNames [4]string = [4]string{"countryCode", "dateFrom", "dateTo", "sortBy"}
+	var varNames = [4]string{"countryCode", "dateFrom", "dateTo", "sortBy"}
 
 	for _, elem := range varNames {
 		v, ok := r.URL.Query()[elem]
@@ -90,18 +92,18 @@ func (app *application) response(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf("SELECT dates.date_value,cases.confirmed,cases.deaths, cases.stringency_actual,cases.stringency FROM cases INNER JOIN countries ON countries.id=cases.country_id INNER JOIN dates ON dates.id=cases.date_id WHERE countries.code='%s' AND date_value BETWEEN '%s' AND '%s' ORDER BY %s ASC;", vars["countryCode"], vars["dateFrom"], vars["dateTo"], vars["sortBy"])
 	log.Println(query)
 
-	//Retrieve data
+	// Retrieve data
 	data, err := database.ReturnMulti(query, app.dbSettings)
 	if err != nil {
 		app.errLog.Fatal(err)
 	}
-	//update content type
+	// Update content type
 	w.Header().Set("Content-Type", "application/json")
 
-	//specify HTTP status code
+	// Specify HTTP status code
 	w.WriteHeader(http.StatusOK)
 
-	//convert struct to JSON
+	// Convert struct to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return
@@ -118,11 +120,11 @@ func (app *application) state(w http.ResponseWriter, r *http.Request) {
 	app.block, _ = database.ReturnBlockValue("SELECT `block` FROM `block`;", app.dbSettings)
 
 	if app.block {
-		//specify HTTP status code
+		// Specify HTTP status code
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "true")
 	} else {
-		//specify HTTP status code
+		// Specify HTTP status code
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "false")
 	}
