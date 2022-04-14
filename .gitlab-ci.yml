@@ -2,6 +2,9 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
+  TESTS_ARE_ENABLED: "true"
+  CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
+  CI_PROJECT_TITLE: "goCovid"
 
 stages:
   - test
@@ -48,6 +51,9 @@ backend tests:
     when: always
     reports:
       junit: ${BACKEND_ROOT}/report.xml
+  only:
+    variables:
+      - $TESTS_ARE_ENABLED == "true"
 
 ## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
 frontend tests:
@@ -62,16 +68,31 @@ frontend tests:
     when: always
     reports:
       junit: ${FRONTEND_ROOT}/report.xml
+  only:
+    variables:
+      - $TESTS_ARE_ENABLED == "true"
 
 frontend build:
   stage: build
   image: docker:19.03.12
   before_script:
     - cd ${FRONTEND_ROOT}
+    - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
   script:
-    - docker build -t tty8747/app:v0.01 .
-    - docker push tty8747/app:v0.01
+    - >
+      docker build
+      --pull
+      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      .
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  variables:
+    BUILD_NAME: app
+    CI_REGISTRY: tty8747
   tags:
     - docker.sock
 
@@ -80,11 +101,22 @@ backend build:
   image: docker:19.03.12
   before_script:
     - cd ${BACKEND_ROOT}
-    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
+    - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+    - printf "${CI_REGISTRY_PASSWORD}" | docker login --username ${CI_REGISTRY_USER} --password-stdin
   script:
-    - docker build -t api:v0.01 .
-    - docker tag api:v0.01 tty8747/api:v0.01
-    - docker push tty8747/api:v0.01
+    - >
+      docker build
+      --pull
+      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      .
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  variables:
+    BUILD_NAME: api
+    CI_REGISTRY: tty8747
   tags:
     - docker.sock
 
@@ -93,9 +125,21 @@ goose build:
   image: docker:19.03.12
   before_script:
     - cd ${GOOSE_ROOT}
+    - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
   script:
-    - docker build -t tty8747/goose:v0.01 .
-    - docker push tty8747/goose:v0.01
+    - >
+      docker build
+      --pull
+      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      .
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  variables:
+    BUILD_NAME: goose
+    CI_REGISTRY: tty8747
   tags:
     - docker.sock
