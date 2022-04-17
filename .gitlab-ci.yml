@@ -2,7 +2,7 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "true"
+  TESTS_ARE_ENABLED: "no"
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "goCovid"
 
@@ -77,7 +77,7 @@ frontend build:
   image: docker:19.03.12
   before_script:
     - cd ${FRONTEND_ROOT}
-    - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
   script:
     - >
@@ -101,7 +101,7 @@ backend build:
   image: docker:19.03.12
   before_script:
     - cd ${BACKEND_ROOT}
-    - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - printf "${CI_REGISTRY_PASSWORD}" | docker login --username ${CI_REGISTRY_USER} --password-stdin
   script:
     - >
@@ -125,7 +125,7 @@ goose build:
   image: docker:19.03.12
   before_script:
     - cd ${GOOSE_ROOT}
-    - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
   script:
     - >
