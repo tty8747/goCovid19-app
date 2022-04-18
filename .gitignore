@@ -79,3 +79,4 @@ terraform.rc
 ### Manual ###
 # k8s/iam_policy.json
 gitlab/ansible/inventory/
+app_manifests/api_config/config.yml
