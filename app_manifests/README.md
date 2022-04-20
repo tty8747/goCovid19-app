@@ -146,6 +146,7 @@ volumeMounts:
   readOnly: true
 
 # volume into spec.volumes for secrets
+volumes:
 - name: api-secret-volume
   secret:
     secretName: api-secret-data
@@ -183,6 +184,31 @@ resources:
 kubectl expose deployment "${DEPLOYMENT}" --name "${SERVICE}" --port 5000 --target-port 5000 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml > api_service.yml
 ```
 
+## Create job for fill data"
+```bash
+kubectl --namespace gocovid create job "${JOB_NAME}" --image="${IMAGE_API}" --dry-run=client -o yaml
+```
+
+## Add into `spec.containers`:
+```bash
+# Add into spec.containers
+command: ["/app/api"]
+args: ["-fill=true"]
+volumeMounts:
+- name: api-secret-volume
+  mountPath: /app/configs
+  readOnly: true
+
+# volume into spec.volumes for secrets
+volumes:
+- name: api-secret-volume
+  secret:
+    secretName: api-secret-data
+
+# add into spec 
+restartPolicy: OnFailure
+```
+
 ## Create frontend deployment:
 ```bash
 kubectl create deployment "${FRONT_DEPLOYMENT}" --image "${IMAGE_FRONT}" --port 8080 --replicas "${REPLICAS}" --namespace "${NAMESPACE}" --dry-run=client -o yaml > front_deploy.yml
@@ -206,7 +232,7 @@ resources:
 
 ## Expose front port through service:
 ```bash
-kubectl expose deployment "${FRONT_DEPLOYMENT}" --name "${FRONT_SERVICE}" --port 8080 --target-port 8080 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml > front_service.yml
+kubectl expose deployment "${FRONT_DEPLOYMENT}" --name "${FRONT_SERVICE}" --port 8080 --target-port 8080 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml > front_service.yml > job_fill.yml
 ```
 
 ## Create ingress:
