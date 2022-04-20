@@ -238,7 +238,16 @@ kubectl expose deployment "${FRONT_DEPLOYMENT}" --name "${FRONT_SERVICE}" --port
 ## Create ingress:
 ```bash
 # set your LOADBALANCER_NAME variable
-kubectl create ingress "${INGRESS}" --namespace="${NAMESPACE}" --annotation kubernetes.io/ingress.class=alb --annotation alb.ingress.kubernetes.io/scheme=internet-facing --annotation alb.ingress.kubernetes.io/load-balancer-name="${LOADBALANCER_NAME}" --annotation alb.ingress.kubernetes.io/target-group-attributes=stickiness.enabled=true --annotation stickiness.lb_cookie.duration_seconds=60 --annotation alb.ingress.kubernetes.io/target-type=ip --rule="/*=${FRONT_SERVICE}:8080" --dry-run=client -o yaml > ingress.yml
+kubectl create ingress "${INGRESS}" --namespace="${NAMESPACE}" \
+    --annotation kubernetes.io/ingress.class=alb \
+    --annotation alb.ingress.kubernetes.io/scheme=internet-facing \
+    --annotation alb.ingress.kubernetes.io/load-balancer-name="${LOADBALANCER_NAME}" \
+    --annotation alb.ingress.kubernetes.io/tags=Environment="${ENVIRONMENT}, ingress.k8s.aws/stack=${APP_NAME}/${INGRESS}" \
+    --annotation alb.ingress.kubernetes.io/target-group-attributes=stickiness.enabled=true \
+    --annotation stickiness.lb_cookie.duration_seconds=60 \
+    --annotation alb.ingress.kubernetes.io/target-type=ip \
+    --rule="/*=${FRONT_SERVICE}:8080" \
+    --dry-run=client -o yaml > ingress.yml
 ```
 
 ## Create horizontal pod autoscaller:
@@ -260,3 +269,29 @@ docker run --rm --net=host loadimpact/loadgentest-wrk -c 100 -t 100 -d 15m http:
 ```bash
 # kubectl --namespace gocovid logs --follow deploy-gocovid-57f4d5ddf6-6hxpd -c goose
 ```
+
+## Short plan:
+
+> IMPORTANTLY!
+> If alb was created early it must have the next tag:
+> Name: "ingress.k8s.aws/stack"
+> Value: "<yournamespace>/<youringress name>"
+
+- fill `env`
+- `source env`
+- `cd api_config` and `gen_config.sh`
+- change `alb.ingress.kubernetes.io/load-balancer-name` in `ingress.yml`
+- creare secrets:
+  ```bash
+  kubectl create secret generic --namespace "${NAMESPACE}" goose-connection-string \
+  --from-literal="GOOSE_DRIVER=mysql" \
+  --from-literal="GOOSE_DBSTRING=${MARIADB_USER}:${MARIADB_PASSWORD}@tcp(${DB_ENTRYPOINT}:3306)/${MARIADB_DATABASE}" \
+  --dry-run=client -o yaml > goose_secrets.yml
+  ```
+  ```bash
+  kubectl create secret generic --namespace "${NAMESPACE}" api-secret-data \
+  --from-file=./api_config/config.yml \
+  --dry-run=client -o yaml > api_secret_data_config.yml
+  ```
+- `kubectl apply -f app_manifests/namespace.yml`
+- `kubectl apply -f app_manifests`
