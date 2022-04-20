@@ -69,6 +69,7 @@ type application struct {
 	settings    appSettings
 	dbSettings  database.Settings
 	block       bool
+	valueUpdate bool
 }
 
 // Obj is made for selected object

@@ -12,6 +12,7 @@ func (app *application) setBlock(b bool) error {
 	if err := database.AddData("DELETE FROM `block`;", app.dbSettings); err != nil {
 		return err
 	}
+	app.valueUpdate = b
 	query := fmt.Sprintf("INSERT INTO `block`(`block`) VALUES (%t);", b)
 	if err := database.AddData(query, app.dbSettings); err != nil {
 		return err

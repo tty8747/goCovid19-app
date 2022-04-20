@@ -35,6 +35,7 @@ Examples:
 curl -D - -s -X GET "http://%s/v1/health-check"
 curl -D - -s -X GET "http://%s/v1/help"
 curl -D - -s -X GET "http://%s/v1/state"
+curl -D - -s -X GET "http://%s/v1/update"
 curl -D - -s -X GET "http://%s/v1/refresh_data"
 curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"
 `, hostname, r.Host, r.Host, r.Host, r.Host, r.Host)
@@ -125,6 +126,26 @@ func (app *application) state(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "true")
 	} else {
 		// Specify HTTP status code
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "false")
+	}
+}
+
+func (app *application) update(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		app.notAllowed(w)
+		return
+	}
+
+	if app.valueUpdate {
+		// Specify HTTP status code
+		w.Header().Add("X-UPDATE-INFO", "true")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "true")
+	} else {
+		// Specify HTTP status code
+		w.Header().Add("X-UPDATE-INFO", "false")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "false")
 	}
