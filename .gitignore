@@ -80,3 +80,5 @@ terraform.rc
 # k8s/iam_policy.json
 gitlab/ansible/inventory/
 app_manifests/api_config/config.yml
+app_manifests/api_secret_data_config.yml
+app_manifests/goose_secrets.yml
