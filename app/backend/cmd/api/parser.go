@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -136,6 +137,7 @@ func (app *application) parser() {
 				continue
 			}
 			app.listObj = append(app.listObj, collectData([]byte(a)))
+			log.Println("Parsing ...", collectData([]byte(a)))
 		}
 	}
 }
