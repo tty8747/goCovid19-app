@@ -23,6 +23,8 @@ FROM alpine:3.15
 ENV DB_HOSTNAME=localhost
 ENV MIGRATIONS_DIR=/app/migrations
 
+RUN apk --no-cache add curl
+
 COPY --from=build /app/bin/api-linux /app/api
 COPY --from=build /app/migrations /app/migrations
 COPY --from=build /app/configs /app/configs
