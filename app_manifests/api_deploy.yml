@@ -26,8 +26,9 @@ spec:
           envFrom:
           - secretRef:
               name: goose-connection-string
+      terminationGracePeriodSeconds: 2376
       containers:
-      - image: tty8747/api:62bde2fe797e42878632774408c2e226a034aa0a
+      - image: tty8747/api:a45ab6f4c44fc7881eaf5fe7a03c6a5f1b7454ed
         name: api
         ports:
         - containerPort: 5000
@@ -42,6 +43,32 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "900m"
+        livenessProbe:
+          httpGet:
+            path: /v1/health-check
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /v1/update
+            port: 5000
+            httpHeaders:
+            - name: X-Update-Info
+              value: "false"
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        startupProbe:
+          httpGet:
+            path: /v1/state
+            port: 5000
+          failureThreshold: 30
+          periodSeconds: 10
+        lifecycle:
+          preStop:
+            exec:
+            # command: ["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/state) == false ]; do echo app is blocked, wait; sleep 10; done"]
+              command: ["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/update) == true ]; do echo app is blocked, wait; sleep 120; done"]
       volumes:
       - name: api-secret-volume
         secret:

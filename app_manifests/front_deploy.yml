@@ -32,4 +32,14 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "900m"
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          tcpSocket:
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
 status: {}
