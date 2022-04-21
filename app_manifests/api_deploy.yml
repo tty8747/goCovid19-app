@@ -7,7 +7,7 @@ metadata:
   name: deploy-gocovid
   namespace: gocovid
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: deploy-gocovid
@@ -28,7 +28,7 @@ spec:
               name: goose-connection-string
       terminationGracePeriodSeconds: 2376
       containers:
-      - image: tty8747/api:a45ab6f4c44fc7881eaf5fe7a03c6a5f1b7454ed
+      - image: tty8747/api:6eb72a8245eec176c35df8c68e7144753ca8d8d3
         name: api
         ports:
         - containerPort: 5000
@@ -39,10 +39,10 @@ spec:
         resources:
           requests:
             memory: "64Mi"
-            cpu: "250m"
+            cpu: "500m"
           limits:
             memory: "128Mi"
-            cpu: "900m"
+            cpu: "1500m"
         livenessProbe:
           httpGet:
             path: /v1/health-check
@@ -50,12 +50,8 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         readinessProbe:
-          httpGet:
-            path: /v1/update
-            port: 5000
-            httpHeaders:
-            - name: X-Update-Info
-              value: "false"
+          exec:
+            command: ["/bin/sh", "-c", "if [ $(curl http://localhost:5000/v1/update) == false ]; then exit 0; else exit 1; fi"]
           initialDelaySeconds: 5
           periodSeconds: 3
         startupProbe:
@@ -67,7 +63,6 @@ spec:
         lifecycle:
           preStop:
             exec:
-            # command: ["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/state) == false ]; do echo app is blocked, wait; sleep 10; done"]
               command: ["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/update) == true ]; do echo app is blocked, wait; sleep 120; done"]
       volumes:
       - name: api-secret-volume
