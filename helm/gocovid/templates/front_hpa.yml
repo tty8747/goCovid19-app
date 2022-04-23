@@ -1,0 +1,17 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  creationTimestamp: null
+  name: front-deploy-{{ include "gocovid.name" . }}
+  namespace: {{ include "namespace" . }}
+spec:
+  maxReplicas: {{ .Values.front.maxReplicas }}
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: front-deploy-{{ include "gocovid.name" . }}
+  targetCPUUtilizationPercentage: {{ .Values.front.targetCPUUtilizationPercentage }}
+status:
+  currentReplicas: 0
+  desiredReplicas: 0

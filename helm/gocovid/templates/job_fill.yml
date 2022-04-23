@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: job-fill-{{ include "gocovid.name" . }}
+  namespace: {{ include "namespace" . }}
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - image: {{ include "apiImage" . }}
+        name: job-fill-{{ include "gocovid.name" . }}
+        command: ["/app/api"]
+        args: ["-fill=true"]
+        volumeMounts:
+        - name: {{ .Values.api.secretVolume }}
+          mountPath: {{ .Values.api.configPath }}
+          readOnly: true
+        resources: {}
+      restartPolicy: OnFailure
+      volumes:
+      - name: {{ .Values.api.secretVolume }}
+        secret:
+          secretName: {{ .Values.api.secretName }}
+status: {}

@@ -1,0 +1,8 @@
+migration_dir: {{ .Values.api.migrationDir }}
+app_endpoint: {{ .Values.api.endpoint }}
+db_host: {{ .Values.dbSettings.endpoint }}
+db_name: {{ .Values.dbSettings.name }}
+db_port: {{ .Values.dbSettings.port }}
+db_user: {{ .Values.dbSettings.user }}
+db_pass: {{ .Values.dbSettings.password }}
+data_reset: false

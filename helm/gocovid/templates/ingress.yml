@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: {{ .Values.front.albName }}
+    {{- toYaml .Values.front.ingressAnnotations | nindent 4 }}
+  creationTimestamp: null
+  name: ingress-{{ include "gocovid.name" . }}
+  namespace: {{ include "namespace" . }}
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: front-svc-{{ include "gocovid.name" . }}
+            port:
+              number: {{ .Values.front.port }}
+        path: /
+        pathType: Prefix
+status:
+  loadBalancer: {}
