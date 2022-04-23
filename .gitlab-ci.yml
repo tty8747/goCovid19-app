@@ -4,11 +4,23 @@ variables:
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
   TESTS_ARE_ENABLED: "no"
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
-  CI_PROJECT_TITLE: "goCovid"
+  CI_PROJECT_TITLE: "gocovid"
+  TOKEN_USER: ${CI_DEPLOY_USER}
+  TOKEN_PASS: ${CI_DEPLOY_PASSWORD}
+  CHANNEL: "stable"
+  PACKAGE_REGISTRY: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${CHANNEL}
+  APP_VER: 0.2.5
+  HELM_CHART_VER: 0.3.2
+  HELM_REPO_NAME: gocovid-repo
+  TF_ENV_TEST: test
+  TF_ENV_PROD: prod
+  TF_VAR_cname_record: ${CNAME_RECORD_TEST}
+  TF_VAR_domain: ${DOMAIN_NAME_TEST}
 
 stages:
   - test
   - build
+  - deploy
 
 # https://docs.gitlab.com/ee/development/go_guide/#automatic-linting
 .lint: &lint
@@ -143,3 +155,63 @@ goose build:
     CI_REGISTRY: tty8747
   tags:
     - docker.sock
+
+helm chart build:
+  stage: build
+  image:
+    name: alpine:3.15.4
+    entrypoint: ["/usr/bin/env", "sh", "-c"]
+  before_script:
+    - wget -O /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz https://get.helm.sh/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz
+    - tar -zxf /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz linux-amd64/helm -C /tmp/
+    - export PATH="/tmp/linux-amd64:$PATH"
+    - apk add --no-cache git
+  script:
+    - cd ${CI_PROJECT_DIR}/helm
+    - helm lint ${CI_PROJECT_TITLE}
+    - helm package ${CI_PROJECT_TITLE} --app-version ${APP_VER}-${CI_COMMIT_SHA} --version ${HELM_CHART_VER}
+    - helm plugin install https://github.com/chartmuseum/helm-push
+    - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
+    - helm cm-push ${CI_PROJECT_TITLE}-${HELM_CHART_VER}.tgz ${HELM_REPO_NAME}
+  variables:
+    HELM_UTIL_VER: v3.8.2
+
+deploy test:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:2.5.8
+    entrypoint: ["/usr/bin/env", "bash", "-c"]
+  environment:
+    name: ${TF_ENV_TEST}
+    url: http://${CNAME_RECORD_TEST}.${DOMAIN_NAME_TEST}
+  before_script:
+    - yum install tar gzip -y
+    - curl -o /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz https://get.helm.sh/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz
+    - tar -zxf /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz -C /tmp/
+    - export PATH="/tmp/linux-amd64:$PATH"
+    - aws eks update-kubeconfig --region eu-central-1 --name ${EKS_NAME} --kubeconfig /tmp/.kubeconfig
+    - >
+      alias helm='helm --kubeconfig /tmp/.kubeconfig
+      --registry-config /tmp/.config/helm/registry/config.json
+      --repository-cache /tmp/.cache/helm/repository
+      --repository-config /tmp/.config/helm/repositories.yaml'
+  script:
+    - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
+    - test -x "$(helm history ${CI_PROJECT_TITLE})" || printf "\n"
+    - helm repo update
+    - >
+      helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
+      --username ${TOKEN_USER} --password ${TOKEN_PASS}
+      --set front.albName=${EKS_ALB}
+      --set dbSettings.endpoint=${DB_ENDPOINT_TEST}
+      --set dbSettings.name=${DB_NAME_TEST}
+      --set dbSettings.user=${DB_USER_TEST}
+      --set dbSettings.password=${DB_PASS_TEST}
+  # - helm rollback  gocovid 1
+  variables:
+    HELM_UTIL_VER: v3.8.2
+    AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
+    AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
+    EKS_NAME: eks-test-4g
+    EKS_ALB: alb-eks-test-4g
+    HELM_ACTION: upgrade # install or upgrade
