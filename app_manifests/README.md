@@ -186,7 +186,7 @@ kubectl expose deployment "${DEPLOYMENT}" --name "${SERVICE}" --port 5000 --targ
 
 ## Create job for fill data"
 ```bash
-kubectl --namespace gocovid create job "${JOB_NAME}" --image="${IMAGE_API}" --dry-run=client -o yaml
+kubectl --namespace gocovid create job "${JOB_NAME}" --image="${IMAGE_API}" --dry-run=client -o yaml > job_fill.yml
 ```
 
 ## Add into `spec.containers`:
@@ -232,7 +232,7 @@ resources:
 
 ## Expose front port through service:
 ```bash
-kubectl expose deployment "${FRONT_DEPLOYMENT}" --name "${FRONT_SERVICE}" --port 8080 --target-port 8080 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml > front_service.yml > job_fill.yml
+kubectl expose deployment "${FRONT_DEPLOYMENT}" --name "${FRONT_SERVICE}" --port 8080 --target-port 8080 --protocol TCP --type=NodePort --namespace "${NAMESPACE}" --dry-run=client -o yaml > front_service.yml
 ```
 
 ## Create ingress:
