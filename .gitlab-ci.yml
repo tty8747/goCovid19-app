@@ -207,6 +207,9 @@ deploy test:
       --set dbSettings.name=${DB_NAME_TEST}
       --set dbSettings.user=${DB_USER_TEST}
       --set dbSettings.password=${DB_PASS_TEST}
+      --set goose.image.tag=${CI_COMMIT_SHA}
+      --set front.image.tag=${CI_COMMIT_SHA}
+      --set api.image.tag=${CI_COMMIT_SHA}
   # - helm rollback  gocovid 1
   variables:
     HELM_UTIL_VER: v3.8.2
