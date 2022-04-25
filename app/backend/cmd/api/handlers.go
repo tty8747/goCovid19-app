@@ -38,7 +38,7 @@ curl -D - -s -X GET "http://%s/v1/state"
 curl -D - -s -X GET "http://%s/v1/update"
 curl -D - -s -X GET "http://%s/v1/refresh_data"
 curl -D - -s -X GET "http://%s/v1/data?countryCode=RUS&&dateFrom=2022-01-01&&dateTo=2022-01-09&&sortBy=deaths"
-`, hostname, r.Host, r.Host, r.Host, r.Host, r.Host)
+`, hostname, r.Host, r.Host, r.Host, r.Host, r.Host, r.Host)
 
 	// fmt.Fprintf(w, resp)
 	w.Write([]byte(resp))
