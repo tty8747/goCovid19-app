@@ -15,6 +15,7 @@ kubectl --namespace "${NAMESPACE}" run mysql --image mariadb:latest \
   --env="DB_ENTRYPOINT=${DB_ENTRYPOINT}" \
   --env="MARIADB_USER=${MARIADB_USER}" \
   --env="MARIADB_PASSWORD=${MARIADB_PASSWORD}" \
+  --overrides='{"spec": { "nodeSelector": {"aim": "api"}}}' \
   --rm --stdin --tty -- bash
 ```
 ```bash
