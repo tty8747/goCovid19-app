@@ -2,7 +2,7 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "no"
+  TESTS_ARE_ENABLED: "true"
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
