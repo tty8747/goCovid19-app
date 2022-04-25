@@ -5,11 +5,11 @@ metadata:
   name: job-fill-{{ include "gocovid.name" . }}
   namespace: {{ include "namespace" . }}
 spec:
+  ttlSecondsAfterFinished: {{ .Values.api.jobTtl }}
   template:
     metadata:
       creationTimestamp: null
     spec:
-      ttlSecondsAfterFinished: {{ .Values.api.jobTtl }}
       nodeSelector:
         {{- toYaml .Values.api.nodeSelectors | nindent 8 }}
       containers:
