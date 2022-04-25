@@ -9,6 +9,8 @@ spec:
     metadata:
       creationTimestamp: null
     spec:
+      nodeSelector:
+        {{- toYaml .Values.api.nodeSelectors | nindent 8 }}
       containers:
       - image: {{ include "apiImage" . }}
         name: job-fill-{{ include "gocovid.name" . }}

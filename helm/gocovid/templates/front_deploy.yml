@@ -18,6 +18,8 @@ spec:
       labels:
         app: front-deploy-{{ include "gocovid.name" . }}
     spec:
+      nodeSelector:
+        {{- toYaml .Values.front.nodeSelectors | nindent 8 }}
       containers:
       - image: {{ include "frontImage" . }}
         name: app
