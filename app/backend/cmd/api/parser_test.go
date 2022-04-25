@@ -21,12 +21,13 @@ func TestGenerateDates(t *testing.T) {
 	}
 }
 
-func TestFullParse(t *testing.T) {
+func TestJanParse(t *testing.T) {
 	// generates a list of dates
 	listOfDates := genListOfDates()
 
 	// makes a link
-	link := makeLink(listOfDates[0], listOfDates[len(listOfDates)-1])
+	// link := makeLink(listOfDates[0], listOfDates[len(listOfDates)-1])
+	link := makeLink("2022-01-01", "2022-02-01")
 
 	// receives data
 	rawData := getData(link)
