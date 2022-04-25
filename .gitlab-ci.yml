@@ -215,6 +215,6 @@ deploy test:
     HELM_UTIL_VER: v3.8.2
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
-    EKS_NAME: eks-test-4g
-    EKS_ALB: alb-eks-test-4g
-    HELM_ACTION: upgrade # install or upgrade
+    EKS_NAME: eks-test-3f
+    EKS_ALB: alb-eks-test-3f
+    HELM_ACTION: install # install or upgrade
