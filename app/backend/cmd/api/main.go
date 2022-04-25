@@ -40,8 +40,16 @@ func main() {
 		// 	app.errLog.Fatal(err)
 		// }
 
+		// set block
+		if err := app.setBlock(true); err != nil {
+			app.errLog.Fatal(err)
+		}
+
 		// Get data
 		app.parser()
+
+		// Purge data from db tables
+		app.purgeTables()
 
 		// Insert data
 		app.insertData()
