@@ -18,6 +18,8 @@ spec:
       labels:
         app: deploy-{{ include "gocovid.name" . }}
     spec:
+      nodeSelector:
+        {{- toYaml .Values.api.nodeSelectors | nindent 8 }}
       initContainers:
         - name: goose
           image: {{ include "gooseImage" . }}
