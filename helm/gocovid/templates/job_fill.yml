@@ -9,6 +9,7 @@ spec:
     metadata:
       creationTimestamp: null
     spec:
+      ttlSecondsAfterFinished: {{ .Values.api.jobTtl }}
       nodeSelector:
         {{- toYaml .Values.api.nodeSelectors | nindent 8 }}
       containers:
