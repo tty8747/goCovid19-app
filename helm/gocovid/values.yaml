@@ -29,6 +29,7 @@ api:
   endpoint: 0.0.0.0:5000
   preStopCommand: '["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/update) == true ]; do echo app is blocked, wait; sleep 120; done"]'
   targetCPUUtilizationPercentage: 75
+  minReplicas: 2
   maxReplicas: 20
   jobTtl: 100
   image:
@@ -68,6 +69,7 @@ front:
   replicas: 1
   commandArgs: '[ "-addr", "0.0.0.0:8080", "-apiVers", "v1", "-hostname", "svc-gocovid", "-port", "5000"]'
   targetCPUUtilizationPercentage: 80
+  minReplicas: 1
   maxReplicas: 50
   port: 8080
   image:

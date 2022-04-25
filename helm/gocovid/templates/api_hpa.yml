@@ -6,7 +6,7 @@ metadata:
   namespace: {{ include "namespace" . }}
 spec:
   maxReplicas: {{ .Values.api.maxReplicas }}
-  minReplicas: 1
+  minReplicas: {{ .Values.api.minReplicas }}
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
