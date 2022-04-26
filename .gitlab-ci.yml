@@ -197,19 +197,19 @@ deploy test:
     - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
     - test -x "$(helm history ${CI_PROJECT_TITLE})" || printf "\n"
     - helm repo update
-    - >
-      helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
-      --username ${TOKEN_USER} --password ${TOKEN_PASS}
-      --set front.albName=${EKS_ALB}
-      --set dbSettings.endpoint=${DB_ENDPOINT_TEST}
-      --set dbSettings.name=${DB_NAME_TEST}
-      --set dbSettings.user=${DB_USER_TEST}
-      --set dbSettings.password=${DB_PASS_TEST}
-      --set goose.image.tag=${CI_COMMIT_SHA}
-      --set front.image.tag=${CI_COMMIT_SHA}
-      --set api.image.tag=${CI_COMMIT_SHA}
-      --set api.jobEnabled=false
-  # - helm rollback  gocovid 1
+    - helm rollback  gocovid 1
+  # - >
+  #   helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
+  #   --username ${TOKEN_USER} --password ${TOKEN_PASS}
+  #   --set front.albName=${EKS_ALB}
+  #   --set dbSettings.endpoint=${DB_ENDPOINT_TEST}
+  #   --set dbSettings.name=${DB_NAME_TEST}
+  #   --set dbSettings.user=${DB_USER_TEST}
+  #   --set dbSettings.password=${DB_PASS_TEST}
+  #   --set goose.image.tag=${CI_COMMIT_SHA}
+  #   --set front.image.tag=${CI_COMMIT_SHA}
+  #   --set api.image.tag=${CI_COMMIT_SHA}
+  #   --set api.jobEnabled=false
   variables:
     HELM_UTIL_VER: v3.8.2
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
