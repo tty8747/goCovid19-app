@@ -15,8 +15,13 @@ spec:
       containers:
       - image: {{ include "apiImage" . }}
         name: job-fill-{{ include "gocovid.name" . }}
+        {{- if .Values.api.jobEnabled }}
         command: ["/app/api"]
         args: ["-fill=true"]
+        {{- else }}
+        command: ["/bin/sh", "-c"]
+        args: ["exit", "0"]
+        {{- end }}
         volumeMounts:
         - name: {{ .Values.api.secretVolume }}
           mountPath: {{ .Values.api.configPath }}
