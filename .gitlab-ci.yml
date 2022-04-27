@@ -218,4 +218,4 @@ deploy test:
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
     EKS_NAME: eks-test-9w
     EKS_ALB: alb-eks-test-9w
-    HELM_ACTION: install # install or upgrade
+    HELM_ACTION: upgrade # install or upgrade
