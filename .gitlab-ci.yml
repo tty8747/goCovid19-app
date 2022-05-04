@@ -2,7 +2,7 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "true"
+  TESTS_ARE_ENABLED: "false" # true or false
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
@@ -89,6 +89,12 @@ frontend build:
     - cd ${FRONTEND_ROOT}
 #   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
+    - apk add --no-cache jq curl
+    # install trivy
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: false
   script:
     - >
       docker build
@@ -97,12 +103,17 @@ frontend build:
       --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
       --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
       .
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
     - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
   variables:
     BUILD_NAME: app
     CI_REGISTRY: tty8747
+  cache:
+    paths:
+      - $HOME/.cache/trivy
   tags:
     - docker.sock
 
@@ -113,6 +124,12 @@ backend build:
     - cd ${BACKEND_ROOT}
 #   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - printf "${CI_REGISTRY_PASSWORD}" | docker login --username ${CI_REGISTRY_USER} --password-stdin
+    - apk add --no-cache jq curl
+    # install trivy
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: false
   script:
     - >
       docker build
@@ -121,6 +138,8 @@ backend build:
       --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
       --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
       .
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
     - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
@@ -137,6 +156,12 @@ goose build:
     - cd ${GOOSE_ROOT}
 #   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
+    - apk add --no-cache jq curl
+    # install trivy
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: false
   script:
     - >
       docker build
@@ -145,6 +170,8 @@ goose build:
       --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
       --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
       .
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
     - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
