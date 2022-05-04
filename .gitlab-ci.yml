@@ -161,7 +161,7 @@ goose build:
     - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
     - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
     - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-  allow_failure: false
+  allow_failure: true # to demonstrate vulnerabilities exists
   script:
     - >
       docker build
