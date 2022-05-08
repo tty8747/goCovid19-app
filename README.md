@@ -2,6 +2,8 @@ It's a part of [goCovid19](https://github.com/tty8747/goCovid19)
 
 ## goCovid19
 
+[![pipeline status](https://gitlab.ubukubu.ru/goto/goCovid19-app/badges/develop/pipeline.svg)](https://gitlab.ubukubu.ru/goto/goCovid19-app/-/commits/develop)
+
 Plan:
 
 - Get all data from current year using API https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range/
