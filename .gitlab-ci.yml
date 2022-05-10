@@ -318,6 +318,6 @@ deploy prod:
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
     EKS_NAME: eks-prod-yo
     EKS_ALB: alb-eks-prod-yo
-    HELM_ACTION: install # install or upgrade
+    HELM_ACTION: upgrade # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: prod
