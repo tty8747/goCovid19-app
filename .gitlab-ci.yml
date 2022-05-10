@@ -267,10 +267,10 @@ helm chart build:
       helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
       --username ${TOKEN_USER} --password ${TOKEN_PASS}
       --set front.albName=${EKS_ALB}
-      --set dbSettings.endpoint=${DB_ENDPOINT_TEST}
-      --set dbSettings.name=${DB_NAME_TEST}
-      --set dbSettings.user=${DB_USER_TEST}
-      --set dbSettings.password=${DB_PASS_TEST}
+      --set dbSettings.endpoint=${DB_ENDPOINT}
+      --set dbSettings.name=${DB_NAME}
+      --set dbSettings.user=${DB_USER}
+      --set dbSettings.password=${DB_PASS}
       --set goose.image.tag=${CI_COMMIT_SHA}
       --set front.image.tag=${CI_COMMIT_SHA}
       --set api.image.tag=${CI_COMMIT_SHA}
@@ -285,6 +285,10 @@ deploy test:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
   variables:
     HELM_UTIL_VER: v3.8.2
+    DB_ENDPOINT: ${DB_ENDPOINT_TEST}
+    DB_NAME: ${DB_NAME_TEST}
+    DB_USER: ${DB_USER_TEST}
+    DB_PASS: ${DB_PASS_TEST}
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_TEST}
@@ -304,6 +308,10 @@ deploy prod:
     - if: '$CI_COMMIT_REF_NAME == "main"'
   variables:
     HELM_UTIL_VER: v3.8.2
+    DB_ENDPOINT: ${DB_ENDPOINT_PROD}
+    DB_NAME: ${DB_NAME_PROD}
+    DB_USER: ${DB_USER_PROD}
+    DB_PASS: ${DB_PASS_PROD}
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
