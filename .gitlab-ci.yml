@@ -2,7 +2,7 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "true" # true or false
+  TESTS_ARE_ENABLED: "false" # true or false
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
@@ -12,8 +12,6 @@ variables:
   APP_VER: 0.2.14
   HELM_CHART_VER: 0.3.3
   HELM_REPO_NAME: gocovid-repo
-  TF_ENV_TEST: test
-  TF_ENV_PROD: prod
 
 stages:
   - test
@@ -222,14 +220,11 @@ helm chart build:
     - frontend build
     - goose build
 
-deploy test:
+.deploy base:
   stage: deploy
   image:
     name: amazon/aws-cli:2.5.8
     entrypoint: ["/usr/bin/env", "bash", "-c"]
-  environment:
-    name: ${TF_ENV_TEST}
-    url: http://${CNAME_RECORD_TEST}.${DOMAIN_NAME_TEST}
   before_script:
     - yum install tar gzip -y
     - curl -o /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz https://get.helm.sh/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz
@@ -258,13 +253,39 @@ deploy test:
       --set front.image.tag=${CI_COMMIT_SHA}
       --set api.image.tag=${CI_COMMIT_SHA}
       --set api.jobEnabled=${JOB_ENABLED}
+
+deploy test:
+  extends: .deploy base
+  environment:
+    name: ${ENVIRONMENT}
+    url: http://${CNAME_RECORD_TEST}.${DOMAIN_NAME_TEST}
   variables:
     HELM_UTIL_VER: v3.8.2
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_TEST}
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
+    EKS_NAME: eks-test-9r
+    EKS_ALB: alb-eks-test-9r
+    HELM_ACTION: install # install or upgrade
+    JOB_ENABLED: "true"
+    ENVIRONMENT: test
+
+deploy prod:
+  extends: .deploy base
+  environment:
+    name: ${ENVIRONMENT}
+    url: http://${CNAME_RECORD_PROD}.${DOMAIN_NAME_PROD}
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+  variables:
+    HELM_UTIL_VER: v3.8.2
+    AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
+    AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
+    TF_VAR_cname_record: ${CNAME_RECORD_PROD}
+    TF_VAR_domain: ${DOMAIN_NAME_PROD}
     EKS_NAME: eks-test-63
     EKS_ALB: alb-alb-eks-test-63
     HELM_ACTION: install # install or upgrade
     JOB_ENABLED: "true"
+    ENVIRONMENT: prod
