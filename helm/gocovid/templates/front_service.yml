@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: front-deploy-{{ include "gocovid.name" . }}
+  name: front-svc-{{ include "gocovid.name" . }}
+  namespace: {{ include "namespace" . }}
+spec:
+  ports:
+  - port: {{ .Values.front.port }}
+    protocol: TCP
+    targetPort: {{ .Values.front.port }}
+  selector:
+    app: front-deploy-{{ include "gocovid.name" . }}
+  type: NodePort
+status:
+  loadBalancer: {}

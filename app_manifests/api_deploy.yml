@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: deploy-gocovid
+  name: deploy-gocovid
+  namespace: gocovid
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: deploy-gocovid
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deploy-gocovid
+    spec:
+      initContainers:
+        - name: goose
+          image: tty8747/goose:62bde2fe797e42878632774408c2e226a034aa0a
+          command: ["goose"]
+          args: ["up"]
+          envFrom:
+          - secretRef:
+              name: goose-connection-string
+      terminationGracePeriodSeconds: 2376
+      containers:
+      - image: tty8747/api:6eb72a8245eec176c35df8c68e7144753ca8d8d3
+        name: api
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: api-secret-volume
+          mountPath: /app/configs
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "500m"
+          limits:
+            memory: "128Mi"
+            cpu: "1500m"
+        livenessProbe:
+          httpGet:
+            path: /v1/health-check
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "if [ $(curl http://localhost:5000/v1/update) == false ]; then exit 0; else exit 1; fi"]
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        startupProbe:
+          httpGet:
+            path: /v1/state
+            port: 5000
+          failureThreshold: 30
+          periodSeconds: 10
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/update) == true ]; do echo app is blocked, wait; sleep 120; done"]
+      volumes:
+      - name: api-secret-volume
+        secret:
+          secretName: api-secret-data
+status: {}

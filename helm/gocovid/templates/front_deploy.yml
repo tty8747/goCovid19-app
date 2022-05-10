@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: front-deploy-{{ include "gocovid.name" . }}
+  name: front-deploy-{{ include "gocovid.name" . }}
+  namespace: {{ include "namespace" . }}
+spec:
+  replicas: {{ .Values.front.replicas }}
+  selector:
+    matchLabels:
+      app: front-deploy-{{ include "gocovid.name" . }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: front-deploy-{{ include "gocovid.name" . }}
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.front.nodeSelectors | nindent 8 }}
+      containers:
+      - image: {{ include "frontImage" . }}
+        name: app
+        command: ["/app/web"]
+        args: {{ .Values.front.commandArgs }}
+        ports:
+        - containerPort: {{ .Values.front.port }}
+        resources:
+          {{- toYaml .Values.front.resources | nindent 10 }}
+        {{- toYaml .Values.front.probes | nindent 8 }}
+status: {}

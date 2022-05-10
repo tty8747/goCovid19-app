@@ -1,0 +1,105 @@
+# Default values for gocovid.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# use only env vars!
+dbSettings:
+  endpoint: gocovid-xxxxx.rds.amazonaws.com
+  port: 3306
+  name: gocovid
+  user: testuser
+  password: yourstrongpassword
+
+goose:
+  secretName: goose-connection-string
+  driver: mysql
+  image:
+    repository: tty8747/goose
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+api:
+  secretName: api-secret-data
+  secretVolume: api-secret-volume 
+  terminationGracePeriodSeconds: 2376
+  migrationDir: /app/migrations
+  configPath: /app/configs
+  replicas: 2
+  port: 5000
+  endpoint: 0.0.0.0:5000
+  preStopCommand: '["/bin/sh", "-c", "while [ $(/usr/bin/env curl http://localhost:5000/v1/update) == true ]; do echo app is blocked, wait; sleep 120; done"]'
+  targetCPUUtilizationPercentage: 75
+  minReplicas: 2
+  maxReplicas: 20
+  jobTtl: 100
+  jobEnabled: true
+  image:
+    repository: tty8747/api
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  nodeSelectors:
+    aim: api
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 500m
+    limits:
+      memory: 1024Mi
+      cpu: 1000m
+  probes:
+    livenessProbe:
+      httpGet:
+        path: /v1/health-check
+        port: 5000
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readinessProbe:
+      exec:
+        command: ["/bin/sh", "-c", "if [ $(curl http://localhost:5000/v1/update) == false ]; then exit 0; else exit 1; fi"]
+      initialDelaySeconds: 5
+      periodSeconds: 3
+    startupProbe:
+      httpGet:
+        path: /v1/state
+        port: 5000
+      failureThreshold: 30
+      periodSeconds: 10
+
+front:
+  albName: alb-eks-test-qq
+  replicas: 1
+  commandArgs: '[ "-addr", "0.0.0.0:8080", "-apiVers", "v1", "-hostname", "svc-gocovid", "-port", "5000"]'
+  targetCPUUtilizationPercentage: 80
+  minReplicas: 1
+  maxReplicas: 50
+  port: 8080
+  image:
+    repository: tty8747/app
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  nodeSelectors:
+    aim: front
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 500m
+  probes:
+    livenessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readinessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  ingressAnnotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+    stickiness.lb_cookie.duration_seconds: "60"

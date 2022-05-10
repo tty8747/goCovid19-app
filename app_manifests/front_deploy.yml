@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: front-deploy-gocovid
+  name: front-deploy-gocovid
+  namespace: gocovid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front-deploy-gocovid
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: front-deploy-gocovid
+    spec:
+      containers:
+      - image: tty8747/app:62bde2fe797e42878632774408c2e226a034aa0a
+        name: app
+        command: ["/app/web"]
+        args: [ "-addr", "0.0.0.0:8080", "-apiVers", "v1", "-hostname", "svc-gocovid", "-port", "5000"]
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "150m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+status: {}

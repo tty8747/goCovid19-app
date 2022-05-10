@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: alb-eks-test-3q
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+    stickiness.lb_cookie.duration_seconds: "60"
+  creationTimestamp: null
+  name: ingress-gocovid
+  namespace: gocovid
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: front-svc-gocovid
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+status:
+  loadBalancer: {}

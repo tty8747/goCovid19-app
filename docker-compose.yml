@@ -1,0 +1,60 @@
+version: '3.1'
+services:
+
+  db:
+    image: mariadb:10.7.1
+    environment:
+      - MARIADB_DATABASE=$MARIADB_DATABASE
+      - MARIADB_USER=$MARIADB_USER
+      - MARIADB_PASSWORD=$MARIADB_PASSWORD
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysql" ,"$MARIADB_DATABASE", "-h", "localhost", "-P", "3306", "-u", "$MARIADB_USER", "-p$MARIADB_PASSWORD", "-e", "SELECT 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+      start_period: 1s
+# connect from localhost: mysql --protocol=tcp $MARIADB_DATABASE -u$MARIADB_USER -p$MARIADB_PASSWORD
+
+  goose:
+    depends_on:
+      db:
+        condition: service_healthy
+    build: app/backend/migrations
+    links:
+      - db:mysql
+    environment:
+      - GOOSE_DRIVER=mysql
+      - GOOSE_DBSTRING=$MARIADB_USER:$MARIADB_PASSWORD@tcp(mysql:3306)/$MARIADB_DATABASE
+    command: ["goose", "up"]
+
+  api_data_init:
+    depends_on:
+      - goose
+    build: app/backend
+    links:
+      - db:mysql
+    command: ["/app/api", "-fill=true"]
+
+  api:
+    depends_on:
+      db:
+        condition: service_healthy
+    build: app/backend
+    ports:
+      - 8080:7000
+    links:
+      - db:mysql
+    environment:
+      - APP_ENDPOINT=0.0.0.0:7000
+    command: ["/app/api"]
+
+  web:
+    build: app/frontend
+    ports:
+      - 4000:4000
+    links:
+      - api:api
+    command: ["/app/web", "-addr", "0.0.0.0:4000", "-port", "7000", "-hostname", "api"]

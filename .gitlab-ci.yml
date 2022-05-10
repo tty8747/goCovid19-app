@@ -1,0 +1,308 @@
+variables:
+  BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
+  FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
+  GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
+  TESTS_ARE_ENABLED: "true" # true or false
+  CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
+  CI_PROJECT_TITLE: "gocovid"
+  TOKEN_USER: ${CI_DEPLOY_USER}
+  TOKEN_PASS: ${CI_DEPLOY_PASSWORD}
+  CHANNEL: "stable"
+  PACKAGE_REGISTRY: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${CHANNEL}
+  APP_VER: 0.2.15
+  HELM_CHART_VER: 0.3.3
+  HELM_REPO_NAME: gocovid-repo
+
+
+stages:
+  - test
+  - build
+  - deploy
+
+# https://docs.gitlab.com/ee/development/go_guide/#automatic-linting
+.lint: &lint
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+  stage: test
+  script:
+    - '[ -e .golangci.yml ] || cp /golangci/.golangci.yml .'
+    - golangci-lint run --issues-exit-code 0 --out-format junit-xml > gl-code-quality-report.xml
+  except:
+    - /^release.*$/
+
+backend lint:
+  extends: .lint
+  before_script:
+    - cd ${BACKEND_ROOT}
+  artifacts:
+    reports:
+      junit: ${BACKEND_ROOT}/gl-code-quality-report.xml
+    paths:
+      - ${BACKEND_ROOT}/gl-code-quality-report.xml
+
+frontend lint:
+  extends: .lint
+  before_script:
+    - cd ${FRONTEND_ROOT}
+  artifacts:
+    reports:
+      junit: ${FRONTEND_ROOT}/gl-code-quality-report.xml
+    paths:
+      - ${FRONTEND_ROOT}/gl-code-quality-report.xml
+
+sonarqube-check:
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script: 
+    - sonar-scanner
+  allow_failure: true
+  only:
+    - develop # or the name of your main branch
+
+## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
+backend tests:
+  stage: test
+  image: golang:stretch
+  before_script:
+    - cd ${BACKEND_ROOT}
+  script:
+    - go install gotest.tools/gotestsum@latest
+    - gotestsum --junitfile report.xml --format testname
+  artifacts:
+    when: always
+    reports:
+      junit: ${BACKEND_ROOT}/report.xml
+  only:
+    variables:
+      - $TESTS_ARE_ENABLED == "true"
+  except:
+    - /^release.*$/
+
+## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
+frontend tests:
+  stage: test
+  image: golang:stretch
+  before_script:
+    - cd ${FRONTEND_ROOT}
+  script:
+    - go install gotest.tools/gotestsum@latest
+    - gotestsum --junitfile report.xml --format testname
+  artifacts:
+    when: always
+    reports:
+      junit: ${FRONTEND_ROOT}/report.xml
+  only:
+    variables:
+      - $TESTS_ARE_ENABLED == "true"
+  except:
+    - /^release.*$/
+
+frontend build:
+  stage: build
+  image: docker:19.03.12
+  before_script:
+    - cd ${FRONTEND_ROOT}
+#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
+    - apk add --no-cache jq curl
+    # install trivy
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: false
+  script:
+    - >
+      docker build
+      --pull
+      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      .
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  variables:
+    BUILD_NAME: app
+    CI_REGISTRY: tty8747
+  cache:
+    paths:
+      - $HOME/.cache/trivy
+  tags:
+    - docker.sock
+  except:
+    - /^release.*$/
+
+backend build:
+  stage: build
+  image: docker:19.03.12
+  before_script:
+    - cd ${BACKEND_ROOT}
+#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+    - printf "${CI_REGISTRY_PASSWORD}" | docker login --username ${CI_REGISTRY_USER} --password-stdin
+    - apk add --no-cache jq curl
+    # install trivy
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: false
+  script:
+    - >
+      docker build
+      --pull
+      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      .
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  variables:
+    BUILD_NAME: api
+    CI_REGISTRY: tty8747
+  tags:
+    - docker.sock
+  except:
+    - /^release.*$/
+
+goose build:
+  stage: build
+  image: docker:19.03.12
+  before_script:
+    - cd ${GOOSE_ROOT}
+#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
+    - apk add --no-cache jq curl
+    # install trivy
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: false
+  script:
+    - >
+      docker build
+      --pull
+      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      .
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  variables:
+    BUILD_NAME: goose
+    CI_REGISTRY: tty8747
+  tags:
+    - docker.sock
+  except:
+    - /^release.*$/
+
+helm chart build:
+  stage: build
+  image:
+    name: alpine:3.15.4
+    entrypoint: ["/usr/bin/env", "sh", "-c"]
+  before_script:
+    - wget -O /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz https://get.helm.sh/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz
+    - tar -zxf /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz linux-amd64/helm -C /tmp/
+    - export PATH="/tmp/linux-amd64:$PATH"
+    - apk add --no-cache git
+  script:
+    - cd ${CI_PROJECT_DIR}/helm
+    - helm lint ${CI_PROJECT_TITLE}
+    - helm package ${CI_PROJECT_TITLE} --app-version ${APP_VER}-${CI_COMMIT_SHA} --version ${HELM_CHART_VER}
+    - helm plugin install https://github.com/chartmuseum/helm-push
+    - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
+    - helm cm-push ${CI_PROJECT_TITLE}-${HELM_CHART_VER}.tgz ${HELM_REPO_NAME}
+  variables:
+    HELM_UTIL_VER: v3.8.2
+  needs:
+    - backend build
+    - frontend build
+    - goose build
+  except:
+    - /^release.*$/
+
+.deploy base:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:2.5.8
+    entrypoint: ["/usr/bin/env", "bash", "-c"]
+  before_script:
+    - yum install tar gzip -y
+    - curl -o /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz https://get.helm.sh/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz
+    - tar -zxf /tmp/helm-${HELM_UTIL_VER}-linux-amd64.tar.gz -C /tmp/
+    - export PATH="/tmp/linux-amd64:$PATH"
+    - aws eks update-kubeconfig --region eu-central-1 --name ${EKS_NAME} --kubeconfig /tmp/.kubeconfig
+    - >
+      alias helm='helm --kubeconfig /tmp/.kubeconfig
+      --registry-config /tmp/.config/helm/registry/config.json
+      --repository-cache /tmp/.cache/helm/repository
+      --repository-config /tmp/.config/helm/repositories.yaml'
+  script:
+    - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
+    - test -x "$(helm history ${CI_PROJECT_TITLE})" || printf "\n"
+    - helm repo update
+  # - helm rollback  gocovid 1
+    - >
+      helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
+      --username ${TOKEN_USER} --password ${TOKEN_PASS}
+      --set front.albName=${EKS_ALB}
+      --set dbSettings.endpoint=${DB_ENDPOINT_TEST}
+      --set dbSettings.name=${DB_NAME_TEST}
+      --set dbSettings.user=${DB_USER_TEST}
+      --set dbSettings.password=${DB_PASS_TEST}
+      --set goose.image.tag=${CI_COMMIT_SHA}
+      --set front.image.tag=${CI_COMMIT_SHA}
+      --set api.image.tag=${CI_COMMIT_SHA}
+      --set api.jobEnabled=${JOB_ENABLED}
+
+deploy test:
+  extends: .deploy base
+  environment:
+    name: ${ENVIRONMENT}
+    url: http://${CNAME_RECORD_TEST}.${DOMAIN_NAME_TEST}
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+  variables:
+    HELM_UTIL_VER: v3.8.2
+    AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
+    AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
+    TF_VAR_cname_record: ${CNAME_RECORD_TEST}
+    TF_VAR_domain: ${DOMAIN_NAME_TEST}
+    EKS_NAME: eks-test-9r
+    EKS_ALB: alb-eks-test-9r
+    HELM_ACTION: install # install or upgrade
+    JOB_ENABLED: "true"
+    ENVIRONMENT: test
+
+deploy prod:
+  extends: .deploy base
+  environment:
+    name: ${ENVIRONMENT}
+    url: http://${CNAME_RECORD_PROD}.${DOMAIN_NAME_PROD}
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+  variables:
+    HELM_UTIL_VER: v3.8.2
+    AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
+    AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
+    TF_VAR_cname_record: ${CNAME_RECORD_PROD}
+    TF_VAR_domain: ${DOMAIN_NAME_PROD}
+    EKS_NAME: eks-test-yo
+    EKS_ALB: alb-alb-eks-test-yo
+    HELM_ACTION: install # install or upgrade
+    JOB_ENABLED: "true"
+    ENVIRONMENT: prod

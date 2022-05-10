@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: deploy-{{ include "gocovid.name" . }}
+  name: deploy-{{ include "gocovid.name" . }}
+  namespace: {{ include "namespace" . }}
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app: deploy-{{ include "gocovid.name" . }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deploy-{{ include "gocovid.name" . }}
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.api.nodeSelectors | nindent 8 }}
+      initContainers:
+        - name: goose
+          image: {{ include "gooseImage" . }}
+          command: ["goose"]
+          args: ["up"]
+          imagePullPolicy: {{ .Values.goose.image.pullPolicy }}
+          envFrom:
+          - secretRef:
+              name: {{ .Values.goose.secretName }}
+      terminationGracePeriodSeconds: {{ .Values.api.terminationGracePeriodSeconds }}
+      containers:
+      - image: {{ include "apiImage" . }}
+        name: api
+        imagePullPolicy: {{ .Values.goose.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.api.port }}
+        volumeMounts:
+        - name: {{ .Values.api.secretVolume }}
+          mountPath: {{ .Values.api.configPath }}
+          readOnly: true
+        resources:
+          {{- toYaml .Values.api.resources | nindent 10 }}
+        {{- toYaml .Values.api.probes | nindent 8 }}
+        lifecycle:
+          preStop:
+            exec:
+              command: {{ .Values.api.preStopCommand }}
+      volumes:
+      - name: {{ .Values.api.secretVolume }}
+        secret:
+          secretName: {{ .Values.api.secretName }}
+status: {}
