@@ -2,14 +2,14 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "false" # true or false
+  TESTS_ARE_ENABLED: "true" # true or false
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
   TOKEN_PASS: ${CI_DEPLOY_PASSWORD}
   CHANNEL: "stable"
   PACKAGE_REGISTRY: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${CHANNEL}
-  APP_VER: 0.2.14
+  APP_VER: 0.2.15
   HELM_CHART_VER: 0.3.3
   HELM_REPO_NAME: gocovid-repo
 
@@ -284,8 +284,8 @@ deploy prod:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
-    EKS_NAME: eks-test-63
-    EKS_ALB: alb-alb-eks-test-63
+    EKS_NAME: eks-test-yo
+    EKS_ALB: alb-alb-eks-test-yo
     HELM_ACTION: install # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: prod
