@@ -13,6 +13,7 @@ variables:
   HELM_CHART_VER: 0.3.3
   HELM_REPO_NAME: gocovid-repo
 
+
 stages:
   - test
   - build
@@ -25,6 +26,8 @@ stages:
   script:
     - '[ -e .golangci.yml ] || cp /golangci/.golangci.yml .'
     - golangci-lint run --issues-exit-code 0 --out-format junit-xml > gl-code-quality-report.xml
+  except:
+    - /^release.*$/
 
 backend lint:
   extends: .lint
@@ -79,6 +82,8 @@ backend tests:
   only:
     variables:
       - $TESTS_ARE_ENABLED == "true"
+  except:
+    - /^release.*$/
 
 ## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
 frontend tests:
@@ -96,6 +101,8 @@ frontend tests:
   only:
     variables:
       - $TESTS_ARE_ENABLED == "true"
+  except:
+    - /^release.*$/
 
 frontend build:
   stage: build
@@ -131,6 +138,8 @@ frontend build:
       - $HOME/.cache/trivy
   tags:
     - docker.sock
+  except:
+    - /^release.*$/
 
 backend build:
   stage: build
@@ -163,6 +172,8 @@ backend build:
     CI_REGISTRY: tty8747
   tags:
     - docker.sock
+  except:
+    - /^release.*$/
 
 goose build:
   stage: build
@@ -195,6 +206,8 @@ goose build:
     CI_REGISTRY: tty8747
   tags:
     - docker.sock
+  except:
+    - /^release.*$/
 
 helm chart build:
   stage: build
@@ -219,6 +232,8 @@ helm chart build:
     - backend build
     - frontend build
     - goose build
+  except:
+    - /^release.*$/
 
 .deploy base:
   stage: deploy
@@ -259,6 +274,8 @@ deploy test:
   environment:
     name: ${ENVIRONMENT}
     url: http://${CNAME_RECORD_TEST}.${DOMAIN_NAME_TEST}
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
   variables:
     HELM_UTIL_VER: v3.8.2
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
