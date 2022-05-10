@@ -28,6 +28,7 @@ stages:
     - golangci-lint run --issues-exit-code 0 --out-format junit-xml > gl-code-quality-report.xml
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 backend lint:
   extends: .lint
@@ -84,6 +85,7 @@ backend tests:
       - $TESTS_ARE_ENABLED == "true"
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 ## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
 frontend tests:
@@ -103,6 +105,7 @@ frontend tests:
       - $TESTS_ARE_ENABLED == "true"
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 frontend build:
   stage: build
@@ -140,6 +143,7 @@ frontend build:
     - docker.sock
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 backend build:
   stage: build
@@ -174,6 +178,7 @@ backend build:
     - docker.sock
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 goose build:
   stage: build
@@ -208,6 +213,7 @@ goose build:
     - docker.sock
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 helm chart build:
   stage: build
@@ -234,6 +240,7 @@ helm chart build:
     - goose build
   except:
     - /^release.*$/
+    - /^hotfix.*$/
 
 .deploy base:
   stage: deploy
@@ -301,8 +308,8 @@ deploy prod:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
-    EKS_NAME: eks-test-yo
-    EKS_ALB: alb-alb-eks-test-yo
+    EKS_NAME: eks-prod-yo
+    EKS_ALB: alb-eks-prod-yo
     HELM_ACTION: install # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: prod
