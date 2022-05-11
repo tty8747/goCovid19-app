@@ -316,8 +316,8 @@ deploy prod:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
-    EKS_NAME: eks-prod-yo
-    EKS_ALB: alb-eks-prod-yo
-    HELM_ACTION: upgrade # install or upgrade
+    EKS_NAME: eks-prod-t6
+    EKS_ALB: alb-eks-prod-t6
+    HELM_ACTION: install # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: prod
