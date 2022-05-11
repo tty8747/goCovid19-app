@@ -9,7 +9,7 @@ variables:
   TOKEN_PASS: ${CI_DEPLOY_PASSWORD}
   CHANNEL: "stable"
   PACKAGE_REGISTRY: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${CHANNEL}
-  APP_VER: 0.2.16
+  APP_VER: 0.2.17
   HELM_CHART_VER: 0.3.3
   HELM_REPO_NAME: gocovid-repo
 
@@ -295,7 +295,7 @@ deploy test:
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
     EKS_NAME: eks-test-ny
     EKS_ALB: alb-eks-test-ny
-    HELM_ACTION: install # install or upgrade
+    HELM_ACTION: upgrade # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: test
 
@@ -318,6 +318,6 @@ deploy prod:
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
     EKS_NAME: eks-prod-t6
     EKS_ALB: alb-eks-prod-t6
-    HELM_ACTION: install # install or upgrade
+    HELM_ACTION: upgrade # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: prod
