@@ -2,7 +2,7 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "false" # true or false
+  TESTS_ARE_ENABLED: "true" # true or false
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
@@ -65,7 +65,7 @@ sonarqube-check:
     - sonar-scanner
   allow_failure: true
   only:
-    - develop # or the name of your main branch
+    - main # or the name of your main branch
 
 ## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
 backend tests:
@@ -293,10 +293,10 @@ deploy test:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_TEST}
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
-    EKS_NAME: eks-test-8q
-    EKS_ALB: alb-eks-test-8q
-    HELM_ACTION: upgrade # install or upgrade
-    JOB_ENABLED: "false"
+    EKS_NAME: eks-test-ny
+    EKS_ALB: alb-eks-test-ny
+    HELM_ACTION: install # install or upgrade
+    JOB_ENABLED: "true"
     ENVIRONMENT: test
 
 deploy prod:
