@@ -2,21 +2,21 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "true" # true or false
+  TESTS_ARE_ENABLED: "false" # true or false
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
   TOKEN_PASS: ${CI_DEPLOY_PASSWORD}
   CHANNEL: "stable"
   PACKAGE_REGISTRY: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${CHANNEL}
-  APP_VER: 0.2.17
-  HELM_CHART_VER: 0.3.3
   HELM_REPO_NAME: gocovid-repo
+  HELM_UTIL_VER: v3.8.2
 
 
 stages:
   - test
   - build
+  - helm build
   - deploy
 
 # https://docs.gitlab.com/ee/development/go_guide/#automatic-linting
@@ -27,8 +27,9 @@ stages:
     - '[ -e .golangci.yml ] || cp /golangci/.golangci.yml .'
     - golangci-lint run --issues-exit-code 0 --out-format junit-xml > gl-code-quality-report.xml
   except:
+    - main
+    - tags
     - /^release.*$/
-    - /^hotfix.*$/
 
 backend lint:
   extends: .lint
@@ -66,6 +67,7 @@ sonarqube-check:
   allow_failure: true
   only:
     - main # or the name of your main branch
+    - tags
 
 ## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
 backend tests:
@@ -84,8 +86,9 @@ backend tests:
     variables:
       - $TESTS_ARE_ENABLED == "true"
   except:
+    - main
+    - tags
     - /^release.*$/
-    - /^hotfix.*$/
 
 ## Use https://github.com/gotestyourself/gotestsum to generate a JUnit report format XML file with go
 frontend tests:
@@ -104,10 +107,11 @@ frontend tests:
     variables:
       - $TESTS_ARE_ENABLED == "true"
   except:
+    - main
+    - tags
     - /^release.*$/
-    - /^hotfix.*$/
 
-frontend build:
+.base build:
   stage: build
   image: docker:19.03.12
   before_script:
@@ -125,17 +129,15 @@ frontend build:
       docker build
       --pull
       --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
-      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
-      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
+      --label "org.opencontainers.image.version=$DOCKER_TAG"
+      --tag $CI_REGISTRY/${BUILD_NAME}:$DOCKER_TAG
       .
-    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
+    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${DOCKER_TAG}
+    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${DOCKER_TAG}
+    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${DOCKER_TAG}
+  after_script:
+    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${DOCKER_TAG} ${CI_REGISTRY}/${BUILD_NAME}:latest
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
-  variables:
-    BUILD_NAME: app
-    CI_REGISTRY: tty8747
   cache:
     paths:
       - $HOME/.cache/trivy
@@ -143,80 +145,67 @@ frontend build:
     - docker.sock
   except:
     - /^release.*$/
-    - /^hotfix.*$/
 
-backend build:
-  stage: build
-  image: docker:19.03.12
-  before_script:
-    - cd ${BACKEND_ROOT}
-#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
-    - printf "${CI_REGISTRY_PASSWORD}" | docker login --username ${CI_REGISTRY_USER} --password-stdin
-    - apk add --no-cache jq curl
-    # install trivy
-    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
-    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
-    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-  allow_failure: false
-  script:
-    - >
-      docker build
-      --pull
-      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
-      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
-      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
-      .
-    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
-    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+frontend branches build:
+  extends: .base build
+  variables:
+    BUILD_NAME: app
+    CI_REGISTRY: tty8747
+    DOCKER_TAG: ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
+  only:
+    - branches
+  needs:
+    - frontend lint
+
+frontend tags build:
+  extends: .base build
+  variables:
+    BUILD_NAME: app
+    CI_REGISTRY: tty8747
+    DOCKER_TAG: ${CI_COMMIT_TAG}
+  only:
+    - tags
+
+backend branches build:
+  extends: .base build
   variables:
     BUILD_NAME: api
     CI_REGISTRY: tty8747
-  tags:
-    - docker.sock
-  except:
-    - /^release.*$/
-    - /^hotfix.*$/
+    DOCKER_TAG: ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
+  only:
+    - branches
+  needs:
+    - backend lint
 
-goose build:
-  stage: build
-  image: docker:19.03.12
-  before_script:
-    - cd ${GOOSE_ROOT}
-#   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
-    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
-    - apk add --no-cache jq curl
-    # install trivy
-    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
-    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
-    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-  allow_failure: false
-  script:
-    - >
-      docker build
-      --pull
-      --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
-      --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
-      --tag $CI_REGISTRY/${BUILD_NAME}:$CI_COMMIT_SHA
-      .
-    - ./trivy image --exit-code 0 --severity HIGH --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - ./trivy image --exit-code 1 --severity CRITICAL --no-progress ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - docker push ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA}
-    - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${CI_COMMIT_SHA} ${CI_REGISTRY}/${BUILD_NAME}:latest
-    - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+backend tags build:
+  extends: .base build
+  variables:
+    BUILD_NAME: api
+    CI_REGISTRY: tty8747
+    DOCKER_TAG: ${CI_COMMIT_TAG}
+  only:
+    - tags
+
+goose branches build:
+  extends: .base build
   variables:
     BUILD_NAME: goose
     CI_REGISTRY: tty8747
-  tags:
-    - docker.sock
-  except:
-    - /^release.*$/
-    - /^hotfix.*$/
+    DOCKER_TAG: ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
+  only:
+    - branches
 
-helm chart build:
-  stage: build
+goose tags build:
+  extends: .base build
+  variables:
+    BUILD_NAME: goose
+    CI_REGISTRY: tty8747
+    DOCKER_TAG: ${CI_COMMIT_TAG}
+  only:
+    - tags
+
+.helm chart base build:
+  stage: helm build
   image:
     name: alpine:3.15.4
     entrypoint: ["/usr/bin/env", "sh", "-c"]
@@ -228,19 +217,26 @@ helm chart build:
   script:
     - cd ${CI_PROJECT_DIR}/helm
     - helm lint ${CI_PROJECT_TITLE}
-    - helm package ${CI_PROJECT_TITLE} --app-version ${APP_VER}-${CI_COMMIT_SHA} --version ${HELM_CHART_VER}
+    - helm package ${CI_PROJECT_TITLE} --app-version ${APP_VER}
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
-    - helm cm-push ${CI_PROJECT_TITLE}-${HELM_CHART_VER}.tgz ${HELM_REPO_NAME}
-  variables:
-    HELM_UTIL_VER: v3.8.2
-  needs:
-    - backend build
-    - frontend build
-    - goose build
+    - helm cm-push ${CI_PROJECT_TITLE}*.tgz ${HELM_REPO_NAME}
   except:
     - /^release.*$/
-    - /^hotfix.*$/
+
+helm chart branches build:
+  extends: .helm chart base build
+  variables:
+    APP_VER: ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
+  only:
+    - branches
+
+helm chart tags build:
+  extends: .helm chart base build
+  variables:
+    APP_VER: ${CI_COMMIT_TAG}
+  only:
+    - tags
 
 .deploy base:
   stage: deploy
@@ -258,11 +254,11 @@ helm chart build:
       --registry-config /tmp/.config/helm/registry/config.json
       --repository-cache /tmp/.cache/helm/repository
       --repository-config /tmp/.config/helm/repositories.yaml'
-  script:
     - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
     - test -x "$(helm history ${CI_PROJECT_TITLE})" || printf "\n"
     - helm repo update
-  # - helm rollback  gocovid 1
+  script:
+  # - helm rollback gocovid 1
     - >
       helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
       --username ${TOKEN_USER} --password ${TOKEN_PASS}
@@ -271,24 +267,28 @@ helm chart build:
       --set dbSettings.name=${DB_NAME}
       --set dbSettings.user=${DB_USER}
       --set dbSettings.password=${DB_PASS}
-      --set goose.image.tag=${CI_COMMIT_SHA}
-      --set front.image.tag=${CI_COMMIT_SHA}
-      --set api.image.tag=${CI_COMMIT_SHA}
+      --set goose.image.tag=${DOCKER_TAG}
+      --set front.image.tag=${DOCKER_TAG}
+      --set api.image.tag=${DOCKER_TAG}
       --set api.jobEnabled=${JOB_ENABLED}
+  after_script:
+    - helm history ${CI_PROJECT_TITLE}
+  except:
+    - /^release.*$/
 
 deploy test:
   extends: .deploy base
   environment:
     name: ${ENVIRONMENT}
     url: http://${CNAME_RECORD_TEST}.${DOMAIN_NAME_TEST}
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "develop"'
+  only:
+    - branches
   variables:
-    HELM_UTIL_VER: v3.8.2
     DB_ENDPOINT: ${DB_ENDPOINT_TEST}
     DB_NAME: ${DB_NAME_TEST}
     DB_USER: ${DB_USER_TEST}
     DB_PASS: ${DB_PASS_TEST}
+    DOCKER_TAG: ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_TEST}
@@ -304,14 +304,14 @@ deploy prod:
   environment:
     name: ${ENVIRONMENT}
     url: http://${CNAME_RECORD_PROD}.${DOMAIN_NAME_PROD}
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+  only:
+    - tags
   variables:
-    HELM_UTIL_VER: v3.8.2
     DB_ENDPOINT: ${DB_ENDPOINT_PROD}
     DB_NAME: ${DB_NAME_PROD}
     DB_USER: ${DB_USER_PROD}
     DB_PASS: ${DB_PASS_PROD}
+    DOCKER_TAG: ${CI_COMMIT_TAG}
     AWS_ACCESS_KEY_ID: ${TF_VAR_aws_access_key_id}
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
