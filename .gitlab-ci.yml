@@ -268,7 +268,7 @@ helm chart tags build:
     - helm repo update
   script:
     - >
-      helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
+      helm upgrade --install ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
       --username ${TOKEN_USER} --password ${TOKEN_PASS}
       --set front.albName=${EKS_ALB}
       --set dbSettings.endpoint=${DB_ENDPOINT}
@@ -280,7 +280,6 @@ helm chart tags build:
       --set api.image.tag=${DOCKER_TAG}
       --set api.jobEnabled=${JOB_ENABLED}
   # - helm rollback gocovid 1
-  after_script:
     - helm history ${CI_PROJECT_TITLE}
   except:
     - /^release.*$/
@@ -304,7 +303,6 @@ deploy test:
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
     EKS_NAME: eks-test-bl
     EKS_ALB: alb-eks-test-bl
-    HELM_ACTION: upgrade # install or upgrade
     JOB_ENABLED: "true"
     ENVIRONMENT: test
 
@@ -325,8 +323,7 @@ deploy prod:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
-    EKS_NAME: eks-prod-xx
-    EKS_ALB: alb-eks-prod-xx
-    HELM_ACTION: install # install or upgrade
+    EKS_NAME: eks-prod-p4
+    EKS_ALB: alb-eks-prod-p4
     JOB_ENABLED: "true"
     ENVIRONMENT: prod
