@@ -258,7 +258,6 @@ helm chart tags build:
     - test -x "$(helm history ${CI_PROJECT_TITLE})" || printf "\n"
     - helm repo update
   script:
-  # - helm rollback gocovid 1
     - >
       helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
       --username ${TOKEN_USER} --password ${TOKEN_PASS}
@@ -271,8 +270,8 @@ helm chart tags build:
       --set front.image.tag=${DOCKER_TAG}
       --set api.image.tag=${DOCKER_TAG}
       --set api.jobEnabled=${JOB_ENABLED}
-  after_script:
     - helm history ${CI_PROJECT_TITLE}
+  # - helm rollback gocovid 1
   except:
     - /^release.*$/
 
@@ -295,8 +294,8 @@ deploy test:
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
     EKS_NAME: eks-test-ya
     EKS_ALB: alb-eks-test-ya
-    HELM_ACTION: install # install or upgrade
-    JOB_ENABLED: "false"
+    HELM_ACTION: upgrade # install or upgrade
+    JOB_ENABLED: "true"
     ENVIRONMENT: test
 
 deploy prod:
@@ -319,5 +318,5 @@ deploy prod:
     EKS_NAME: eks-prod-xx
     EKS_ALB: alb-eks-prod-xx
     HELM_ACTION: install # install or upgrade
-    JOB_ENABLED: "false"
+    JOB_ENABLED: "true"
     ENVIRONMENT: prod
