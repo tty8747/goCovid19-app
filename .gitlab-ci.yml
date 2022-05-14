@@ -2,7 +2,7 @@ variables:
   BACKEND_ROOT: ${CI_PROJECT_DIR}/app/backend
   FRONTEND_ROOT: ${CI_PROJECT_DIR}/app/frontend
   GOOSE_ROOT: ${CI_PROJECT_DIR}/app/backend/migrations
-  TESTS_ARE_ENABLED: "false" # true or false
+  TESTS_ARE_ENABLED: "true" # true or false
   CI_REGISTRY: "public.ecr.aws/r0o1i1b8"
   CI_PROJECT_TITLE: "gocovid"
   TOKEN_USER: ${CI_DEPLOY_USER}
@@ -114,8 +114,7 @@ frontend tests:
 .base build:
   stage: build
   image: docker:19.03.12
-  before_script:
-    - cd ${FRONTEND_ROOT}
+  script:
 #   - printf "${AWS_REGISTRY_PASSWORD}" | docker login --username AWS --password-stdin public.ecr.aws/r0o1i1b8
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
     - apk add --no-cache jq curl
@@ -123,8 +122,6 @@ frontend tests:
     - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq '.tag_name' | tr -d '"|[A-Za-z]')
     - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
     - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-  allow_failure: false
-  script:
     - >
       docker build
       --pull
@@ -138,6 +135,7 @@ frontend tests:
   after_script:
     - docker tag ${CI_REGISTRY}/${BUILD_NAME}:${DOCKER_TAG} ${CI_REGISTRY}/${BUILD_NAME}:latest
     - docker push ${CI_REGISTRY}/${BUILD_NAME}:latest
+  allow_failure: false
   cache:
     paths:
       - $HOME/.cache/trivy
@@ -148,6 +146,8 @@ frontend tests:
 
 frontend branches build:
   extends: .base build
+  before_script:
+    - cd ${FRONTEND_ROOT}
   variables:
     BUILD_NAME: app
     CI_REGISTRY: tty8747
@@ -159,6 +159,8 @@ frontend branches build:
 
 frontend tags build:
   extends: .base build
+  before_script:
+    - cd ${FRONTEND_ROOT}
   variables:
     BUILD_NAME: app
     CI_REGISTRY: tty8747
@@ -168,6 +170,8 @@ frontend tags build:
 
 backend branches build:
   extends: .base build
+  before_script:
+    - cd ${BACKEND_ROOT}
   variables:
     BUILD_NAME: api
     CI_REGISTRY: tty8747
@@ -179,6 +183,8 @@ backend branches build:
 
 backend tags build:
   extends: .base build
+  before_script:
+    - cd ${BACKEND_ROOT}
   variables:
     BUILD_NAME: api
     CI_REGISTRY: tty8747
@@ -188,6 +194,8 @@ backend tags build:
 
 goose branches build:
   extends: .base build
+  before_script:
+    - cd ${GOOSE_ROOT}
   variables:
     BUILD_NAME: goose
     CI_REGISTRY: tty8747
@@ -197,6 +205,8 @@ goose branches build:
 
 goose tags build:
   extends: .base build
+  before_script:
+    - cd ${GOOSE_ROOT}
   variables:
     BUILD_NAME: goose
     CI_REGISTRY: tty8747
@@ -255,11 +265,10 @@ helm chart tags build:
       --repository-cache /tmp/.cache/helm/repository
       --repository-config /tmp/.config/helm/repositories.yaml'
     - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
-    - test -x "$(helm history ${CI_PROJECT_TITLE})" || printf "\n"
     - helm repo update
   script:
     - >
-      helm ${HELM_ACTION} ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
+      helm upgrade --install ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
       --username ${TOKEN_USER} --password ${TOKEN_PASS}
       --set front.albName=${EKS_ALB}
       --set dbSettings.endpoint=${DB_ENDPOINT}
@@ -292,10 +301,9 @@ deploy test:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_TEST}
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
-    EKS_NAME: eks-test-ya
-    EKS_ALB: alb-eks-test-ya
-    HELM_ACTION: upgrade # install or upgrade
-    JOB_ENABLED: "false"
+    EKS_NAME: eks-test-bl
+    EKS_ALB: alb-eks-test-bl
+    JOB_ENABLED: "true"
     ENVIRONMENT: test
 
 deploy prod:
@@ -315,8 +323,7 @@ deploy prod:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
-    EKS_NAME: eks-prod-xx
-    EKS_ALB: alb-eks-prod-xx
-    HELM_ACTION: install # install or upgrade
-    JOB_ENABLED: "false"
+    EKS_NAME: eks-prod-p4
+    EKS_ALB: alb-eks-prod-p4
+    JOB_ENABLED: "true"
     ENVIRONMENT: prod
