@@ -27,7 +27,7 @@ func TestJanParse(t *testing.T) {
 
 	// makes a link
 	// link := makeLink(listOfDates[0], listOfDates[len(listOfDates)-1])
-	link := makeLink("2022-01-01", "2022-02-01")
+	link := makeLink("2022-01-01", "2022-01-05")
 
 	// receives data
 	rawData := getData(link)
