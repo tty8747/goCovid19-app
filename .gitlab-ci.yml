@@ -280,7 +280,6 @@ helm chart tags build:
       --set api.image.tag=${DOCKER_TAG}
       --set api.jobEnabled=${JOB_ENABLED}
     - helm history ${CI_PROJECT_TITLE}
-    - env
   # - helm rollback gocovid 1
   except:
     - /^release.*$/
@@ -315,8 +314,7 @@ deploy prod:
   only:
     - tags
   variables:
-    DB_ENDPOINT1: ${DB_ENDPOINT_PROD}
-    DB_ENDPOINT: "gocovid-prod-2022051517533116090000000d.c9nmurf5weua.eu-central-1.rds.amazonaws.com"
+    DB_ENDPOINT: ${DB_ENDPOINT_PROD}
     DB_NAME: ${DB_NAME_PROD}
     DB_USER: ${DB_USER_PROD}
     DB_PASS: ${DB_PASS_PROD}
