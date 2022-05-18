@@ -301,9 +301,9 @@ deploy test:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_TEST}
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
-    EKS_NAME: eks-test-vm
-    EKS_ALB: alb-eks-test-vm
-    JOB_ENABLED: "false"
+    EKS_NAME: eks-test-6y
+    EKS_ALB: alb-eks-test-6y
+    JOB_ENABLED: "true"
     ENVIRONMENT: test
 
 deploy prod:
@@ -323,7 +323,7 @@ deploy prod:
     AWS_SECRET_ACCESS_KEY: ${TF_VAR_aws_secret_access_key}
     TF_VAR_cname_record: ${CNAME_RECORD_PROD}
     TF_VAR_domain: ${DOMAIN_NAME_PROD}
-    EKS_NAME: eks-prod-0q
-    EKS_ALB: alb-eks-prod-0q
-    JOB_ENABLED: "false"
+    EKS_NAME: eks-prod-c9
+    EKS_ALB: alb-eks-prod-c9
+    JOB_ENABLED: "true"
     ENVIRONMENT: prod
