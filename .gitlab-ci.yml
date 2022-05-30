@@ -280,7 +280,7 @@ helm chart tags build:
   #   --set api.image.tag=${DOCKER_TAG}
   #   --set api.jobEnabled=${JOB_ENABLED}
     - helm history ${CI_PROJECT_TITLE}
-    - helm rollback gocovid 1
+    - helm rollback gocovid 2
   except:
     - /^release.*$/
 
