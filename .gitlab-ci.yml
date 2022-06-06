@@ -267,20 +267,20 @@ helm chart tags build:
     - helm repo add --username ${TOKEN_USER} --password ${TOKEN_PASS} ${HELM_REPO_NAME} ${PACKAGE_REGISTRY}
     - helm repo update
   script:
-  # - >
-  #   helm upgrade --install ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
-  #   --username ${TOKEN_USER} --password ${TOKEN_PASS}
-  #   --set front.albName=${EKS_ALB}
-  #   --set dbSettings.endpoint=${DB_ENDPOINT}
-  #   --set dbSettings.name=${DB_NAME}
-  #   --set dbSettings.user=${DB_USER}
-  #   --set dbSettings.password=${DB_PASS}
-  #   --set goose.image.tag=${DOCKER_TAG}
-  #   --set front.image.tag=${DOCKER_TAG}
-  #   --set api.image.tag=${DOCKER_TAG}
-  #   --set api.jobEnabled=${JOB_ENABLED}
-  # - helm history ${CI_PROJECT_TITLE}
-    - helm rollback gocovid 3
+    - >
+      helm upgrade --install ${CI_PROJECT_TITLE} ${HELM_REPO_NAME}/${CI_PROJECT_TITLE}
+      --username ${TOKEN_USER} --password ${TOKEN_PASS}
+      --set front.albName=${EKS_ALB}
+      --set dbSettings.endpoint=${DB_ENDPOINT}
+      --set dbSettings.name=${DB_NAME}
+      --set dbSettings.user=${DB_USER}
+      --set dbSettings.password=${DB_PASS}
+      --set goose.image.tag=${DOCKER_TAG}
+      --set front.image.tag=${DOCKER_TAG}
+      --set api.image.tag=${DOCKER_TAG}
+      --set api.jobEnabled=${JOB_ENABLED}
+    - helm history ${CI_PROJECT_TITLE}
+  # - helm rollback gocovid 1
   except:
     - /^release.*$/
 
