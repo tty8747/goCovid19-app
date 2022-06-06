@@ -303,7 +303,7 @@ deploy test:
     TF_VAR_domain: ${DOMAIN_NAME_TEST}
     EKS_NAME: test
     EKS_ALB: alb-test
-    JOB_ENABLED: "false"
+    JOB_ENABLED: "true"
     ENVIRONMENT: test
 
 deploy prod:
